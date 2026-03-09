@@ -10,20 +10,30 @@ export interface ExternalArticle {
 
 export async function fetchZennArticles(username: string): Promise<ExternalArticle[]> {
   try {
-    const res = await fetch(
-      `https://zenn.dev/api/articles?username=${username}&order=latest`,
-    );
+    const res = await fetch(`https://zenn.dev/${username}/feed`);
     if (!res.ok) return [];
-    const data = await res.json();
-    return (data.articles ?? []).map((a: any): ExternalArticle => ({
-      title: a.title,
-      url: `https://zenn.dev${a.path}`,
-      description: a.body_letters_count ? `${a.body_letters_count.toLocaleString()} 字` : '',
-      publishedAt: a.published_at,
-      source: 'zenn',
-      tags: (a.topics ?? []).map((t: any) => t.name ?? t),
-      thumbnail: a.cover_image_url ?? undefined,
-    }));
+    const xml = await res.text();
+
+    const { XMLParser } = await import('fast-xml-parser');
+    const parser = new XMLParser({ isArray: (name) => name === 'item' });
+    const feed = parser.parse(xml);
+    const items: any[] = feed?.rss?.channel?.item ?? [];
+
+    return items.map((item): ExternalArticle => {
+      const desc = (item.description ?? '')
+        .replace(/<[^>]+>/g, '')
+        .trim()
+        .slice(0, 100);
+
+      return {
+        title: item.title ?? '',
+        url: item.link ?? '',
+        description: desc,
+        publishedAt: new Date(item.pubDate).toISOString(),
+        source: 'zenn',
+        thumbnail: item.enclosure?.['@_url'] ?? undefined,
+      };
+    });
   } catch {
     return [];
   }
