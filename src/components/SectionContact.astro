@@ -3,9 +3,9 @@ import Icon from './Icon.astro';
 
 type IconName = 'github' | 'x' | 'instagram' | 'linkedin' | 'discord' | 'qiita' | 'zenn';
 
-const contacts: { label: string; href: string; icon: IconName }[] = [
+const contacts: { label: string; href: string; icon: IconName; ariaLabel?: string }[] = [
   { label: 'GitHub', href: 'https://github.com/raiga0310', icon: 'github' },
-  { label: 'Zenn', href: 'https://zenn.dev/ahoxa1rx', icon: 'zenn' },
+  { label: 'Zenn', href: 'https://zenn.dev/ahoxa1rx', icon: 'zenn', ariaLabel: 'Zenn (コンタクト)' },
   { label: 'Qiita', href: 'https://qiita.com/raiga0310', icon: 'qiita' },
   { label: 'Twitter / X', href: 'https://twitter.com/ahoxa1rx', icon: 'x' },
   { label: 'Instagram', href: 'https://instagram.com/raiga__', icon: 'instagram' },
@@ -21,7 +21,7 @@ const contacts: { label: string; href: string; icon: IconName }[] = [
     <ul class="contact__list">
       {contacts.map(c => (
         <li>
-          <a href={c.href} target="_blank" rel="noopener" class="contact__link">
+          <a href={c.href} target="_blank" rel="noopener" class="contact__link" aria-label={c.ariaLabel}>
             <span class="contact__icon">
               <Icon name={c.icon} size={18} />
             </span>
