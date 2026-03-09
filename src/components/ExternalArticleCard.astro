@@ -9,8 +9,8 @@ const { article } = Astro.props;
 const dateStr = new Date(article.publishedAt).toLocaleDateString('ja-JP', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
-const sourceLabel = article.source === 'zenn' ? 'Zenn' : 'Qiita';
-const sourceColor = article.source === 'zenn' ? '#3EA8FF' : '#55c500';
+const sourceLabel = article.source === 'zenn' ? 'Zenn' : article.source === 'qiita' ? 'Qiita' : 'PR TIMES';
+const sourceColor = article.source === 'zenn' ? '#3EA8FF' : article.source === 'qiita' ? '#55c500' : '#E14D2A';
 ---
 
 <a href={article.url} target="_blank" rel="noopener" class="ext-card">
