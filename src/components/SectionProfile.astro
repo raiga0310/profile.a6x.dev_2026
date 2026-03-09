@@ -9,14 +9,20 @@
         <p>プログラミングと創作が好きなソフトウェアエンジニアです。</p>
         <p>Web バックエンドを中心に、言語処理系・ツール開発・スライド制作など幅広く手を動かしています。散歩しながらアイデアを練るのが日課です。</p>
         <p>プログラミング言語の設計思想や型システムに興味があり、Rust / TypeScript / Haskell などを好んで使います。</p>
+        <blockquote class="profile__quote">
+          <p><em>章魚木の島から華の都へと出て来ても、此の傾向は容易に改まりそうもない。まだ南洋呆けがさめないのかも知れぬ。</em></p>
+          <footer>— 『章魚木の下で』中島敦</footer>
+        </blockquote>
       </div>
       <dl class="profile__meta">
-        <dt>場所</dt>
-        <dd>Japan</dd>
-        <dt>仕事</dt>
-        <dd>Software Engineer</dd>
+        <dt>氏名</dt>
+        <dd>笹山 雷雅</dd>
+        <dt>出身</dt>
+        <dd>愛知県</dd>
+        <dt>誕生日</dt>
+        <dd>3月10日</dd>
         <dt>趣味</dt>
-        <dd>プログラミング、創作、散歩</dd>
+        <dd>プログラミング、創作、散歩、読書</dd>
         <dt>好きな言語</dt>
         <dd>Rust, TypeScript, Haskell</dd>
       </dl>
@@ -36,6 +42,26 @@
     margin-bottom: 1rem;
     line-height: 1.8;
     color: var(--text);
+  }
+
+  .profile__quote {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .profile__quote p {
+    margin-bottom: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .profile__quote footer {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
   }
 
   .profile__meta {
