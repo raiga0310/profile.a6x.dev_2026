@@ -15,7 +15,6 @@ sitePosts.sort(
 );
 
 const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'Sizu', 'This Site'] as const;
-type Tab = typeof tabs[number];
 ---
 
 <BaseLayout title="Blog | a6x.dev" description="raigaのブログ記事一覧">
@@ -43,7 +42,7 @@ type Tab = typeof tabs[number];
             description={p.data.description}
             publishedAt={p.data.publishedAt}
             tags={p.data.tags}
-            href={`/blogs/posts/${p.id}`}
+            href={`/blogs/posts/${p.id.replace(/\.md$/, '')}`}
           />
         </div>
       ))}
