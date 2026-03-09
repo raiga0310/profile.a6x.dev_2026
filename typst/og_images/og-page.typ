@@ -2,8 +2,8 @@
 #let description = sys.inputs.at("description", default: "")
 #let kind = sys.inputs.at("kind", default: "")
 
-#let color-a = rgb("#f6d13b")
-#let color-b = rgb("#5cf6dc")
+#let color-a = rgb("#7dc86a")
+#let color-b = rgb("#3a6e47")
 #let theme-gradient = gradient.linear(color-a, color-b, angle: 45deg)
 
 #set page(
@@ -13,7 +13,7 @@
   fill: theme-gradient
 )
 
-#let base-white = rgb("#ffffff")
+#let base-white = rgb("#fafafa")
 #let text-color = rgb("#1a1a1a")
 
 #place(center + horizon)[
@@ -35,7 +35,7 @@
       #stack(dir: ttb, spacing: 22pt)[
         // Kind label (Slide / Blog / Product)
         #if kind.len() > 0 [
-          #text(size: 18pt, weight: "bold", fill: rgb("#9ca3af"))[
+          #text(size: 18pt, weight: "bold", fill: rgb("#666666"))[
             #upper(kind)
           ]
         ]
@@ -55,13 +55,13 @@
 
         // Description / event
         #if description.len() > 0 [
-          #text(size: 28pt, fill: rgb("#4b5563"))[
+          #text(size: 28pt, fill: rgb("#666666"))[
             #description
           ]
         ]
 
         // Site attribution
-        #text(size: 16pt, fill: rgb("#9ca3af"))[
+        #text(size: 16pt, fill: rgb("#666666"))[
           raiga0310 · a6x.dev
         ]
       ]

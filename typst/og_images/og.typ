@@ -1,5 +1,5 @@
-#let color-a = rgb("#f6d13b")
-#let color-b = rgb("#5cf6dc")
+#let color-a = rgb("#7dc86a")
+#let color-b = rgb("#3a6e47")
 #let theme-gradient = gradient.linear(color-a, color-b, angle: 45deg)
 
 #set page(
@@ -11,7 +11,7 @@
 )
 
 // テーマ設定
-#let base-white = rgb("#ffffff")
+#let base-white = rgb("#fafafa")
 #let text-color = rgb("#1a1a1a")
 
 // メインコンテンツを包む丸角の白ボックス
@@ -43,7 +43,7 @@
           radius: 2pt
         )
         
-        #text(size: 36pt, fill: rgb("#4b5563"))[
+        #text(size: 36pt, fill: rgb("#666666"))[
           ポートフォリオ
         ]
       ]
