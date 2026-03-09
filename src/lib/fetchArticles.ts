@@ -3,7 +3,7 @@ export interface ExternalArticle {
   url: string;
   description: string;
   publishedAt: string;
-  source: 'zenn' | 'qiita' | 'prtimes';
+  source: 'zenn' | 'qiita' | 'prtimes' | 'sizu';
   tags?: string[];
   thumbnail?: string;
 }
@@ -85,16 +85,48 @@ export async function fetchPRTimesArticles(): Promise<ExternalArticle[]> {
   }
 }
 
+export async function fetchSizuArticles(): Promise<ExternalArticle[]> {
+  try {
+    const res = await fetch('https://sizu.me/ahoxa/rss');
+    if (!res.ok) return [];
+    const xml = await res.text();
+
+    const { XMLParser } = await import('fast-xml-parser');
+    const parser = new XMLParser({ isArray: (name) => name === 'item' });
+    const feed = parser.parse(xml);
+    const items: any[] = feed?.rss?.channel?.item ?? [];
+
+    return items.map((item): ExternalArticle => {
+      const desc = (item.description ?? '')
+        .replace(/<[^>]+>/g, '')
+        .trim()
+        .slice(0, 100);
+
+      return {
+        title: item.title ?? '',
+        url: item.link ?? '',
+        description: desc,
+        publishedAt: new Date(item.pubDate).toISOString(),
+        source: 'sizu',
+        thumbnail: item.enclosure?.['@_url'] ?? undefined,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 const ZENN_USERNAME = import.meta.env.ZENN_USERNAME ?? 'ahoxa1rx';
 const QIITA_USERNAME = import.meta.env.QIITA_USERNAME ?? 'raiga0310';
 
 export async function fetchAllExternalArticles(): Promise<ExternalArticle[]> {
-  const [zenn, qiita, prtimes] = await Promise.all([
+  const [zenn, qiita, prtimes, sizu] = await Promise.all([
     fetchZennArticles(ZENN_USERNAME),
     fetchQiitaArticles(QIITA_USERNAME),
     fetchPRTimesArticles(),
+    fetchSizuArticles(),
   ]);
-  return [...zenn, ...qiita, ...prtimes].sort(
+  return [...zenn, ...qiita, ...prtimes, ...sizu].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
 }

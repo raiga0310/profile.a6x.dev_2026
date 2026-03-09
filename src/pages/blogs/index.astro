@@ -14,7 +14,7 @@ sitePosts.sort(
   (a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime()
 );
 
-const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'This Site'] as const;
+const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'Sizu', 'This Site'] as const;
 type Tab = typeof tabs[number];
 ---
 
@@ -48,7 +48,7 @@ type Tab = typeof tabs[number];
         </div>
       ))}
       {externalArticles.map(a => (
-        <div class="article-item" data-source={a.source === 'zenn' ? 'Zenn' : a.source === 'qiita' ? 'Qiita' : 'PR TIMES'}>
+        <div class="article-item" data-source={a.source === 'zenn' ? 'Zenn' : a.source === 'qiita' ? 'Qiita' : a.source === 'prtimes' ? 'PR TIMES' : 'Sizu'}>
           <ExternalArticleCard article={a} />
         </div>
       ))}
