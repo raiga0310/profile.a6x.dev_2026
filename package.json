@@ -5,11 +5,17 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "npm run build && wrangler dev",
     "astro": "astro",
-    "slides:build": "mkdir -p public/slides && for f in typst/*.typ; do typst compile --font-path typst/fonts \"$f\" \"public/slides/$(basename ${f%.typ}).pdf\"; done"
+    "slides:build": "mkdir -p public/slides && for f in typst/*.typ; do typst compile --font-path typst/fonts \"$f\" \"public/slides/$(basename ${f%.typ}).pdf\"; done",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.12",
     "astro": "^5.17.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.71.0"
   }
 }
