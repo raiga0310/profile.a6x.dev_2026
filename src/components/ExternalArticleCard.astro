@@ -1,5 +1,6 @@
 ---
 import type { ExternalArticle } from '../lib/fetchArticles';
+import Icon from './Icon.astro';
 
 interface Props {
   article: ExternalArticle;
@@ -11,10 +12,14 @@ const dateStr = new Date(article.publishedAt).toLocaleDateString('ja-JP', {
 });
 const sourceLabel = article.source === 'zenn' ? 'Zenn' : article.source === 'qiita' ? 'Qiita' : article.source === 'prtimes' ? 'PR TIMES' : 'Sizu';
 const sourceColor = article.source === 'zenn' ? '#3EA8FF' : article.source === 'qiita' ? '#55c500' : article.source === 'prtimes' ? '#E14D2A' : '#6B7280';
+const sourceIcon = article.source === 'zenn' ? 'zenn' : article.source === 'qiita' ? 'qiita' : article.source === 'prtimes' ? 'prtimes' : 'sizu';
 ---
 
 <a href={article.url} target="_blank" rel="noopener" class="ext-card">
-  <div class="ext-card__badge" style={`background: ${sourceColor}`}>{sourceLabel}</div>
+  <div class="ext-card__badge" style={`background: ${sourceColor}`}>
+    <Icon name={sourceIcon as any} size={12} color="#fff" />
+    {sourceLabel}
+  </div>
   <h2 class="ext-card__title">{article.title}</h2>
   {article.description && (
     <p class="ext-card__desc">{article.description}</p>
@@ -48,7 +53,9 @@ const sourceColor = article.source === 'zenn' ? '#3EA8FF' : article.source === '
   }
 
   .ext-card__badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
     font-size: 0.7rem;
     font-weight: 700;
     color: #fff;

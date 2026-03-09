@@ -1,12 +1,16 @@
 ---
-const contacts = [
-  { label: 'GitHub', href: 'https://github.com/raiga0310', icon: 'GH' },
-  { label: 'Zenn', href: 'https://zenn.dev/ahoxa1rx', icon: 'Zn' },
-  { label: 'Qiita', href: 'https://qiita.com/raiga0310', icon: 'Qi' },
-  { label: 'Twitter / X', href: 'https://twitter.com/ahoxa1rx', icon: 'X' },
-  { label: 'Instagram', href: 'https://instagram.com/raiga__', icon: 'IG' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/raiga-sasayama-768b661a5/', icon: 'in' },
-  { label: 'Discord', href: 'https://discord.com/users/622077711309078529', icon: 'DC' },
+import Icon from './Icon.astro';
+
+type IconName = 'github' | 'x' | 'instagram' | 'linkedin' | 'discord' | 'qiita' | 'zenn';
+
+const contacts: { label: string; href: string; icon: IconName }[] = [
+  { label: 'GitHub', href: 'https://github.com/raiga0310', icon: 'github' },
+  { label: 'Zenn', href: 'https://zenn.dev/ahoxa1rx', icon: 'zenn' },
+  { label: 'Qiita', href: 'https://qiita.com/raiga0310', icon: 'qiita' },
+  { label: 'Twitter / X', href: 'https://twitter.com/ahoxa1rx', icon: 'x' },
+  { label: 'Instagram', href: 'https://instagram.com/raiga__', icon: 'instagram' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/raiga-sasayama-768b661a5/', icon: 'linkedin' },
+  { label: 'Discord', href: 'https://discord.com/users/622077711309078529', icon: 'discord' },
 ];
 ---
 
@@ -18,7 +22,9 @@ const contacts = [
       {contacts.map(c => (
         <li>
           <a href={c.href} target="_blank" rel="noopener" class="contact__link">
-            <span class="contact__icon" aria-hidden="true">{c.icon}</span>
+            <span class="contact__icon">
+              <Icon name={c.icon} size={18} />
+            </span>
             <span>{c.label}</span>
           </a>
         </li>
@@ -60,10 +66,12 @@ const contacts = [
   }
 
   .contact__icon {
-    font-weight: 700;
-    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
     color: var(--accent);
-    min-width: 1.5rem;
-    text-align: center;
+  }
+
+  .contact__link:hover .contact__icon {
+    color: var(--accent);
   }
 </style>
