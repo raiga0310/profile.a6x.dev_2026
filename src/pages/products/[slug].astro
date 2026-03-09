@@ -12,11 +12,13 @@ export async function getStaticPaths() {
 
 const { product } = Astro.props;
 const { Content } = await render(product);
+const slug = product.id.replace(/\.md$/, '');
 ---
 
 <BaseLayout
   title={`${product.data.title} | a6x.dev`}
   description={product.data.description}
+  ogImage={`/og/products/${slug}.png`}
 >
   <article class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
     <a href="/products" class="back-link">← Products</a>

@@ -12,6 +12,7 @@ export async function getStaticPaths() {
 }
 
 const { slide } = Astro.props;
+const slug = slide.id.replace(/\.md$/, '');
 const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
   year: 'numeric', month: 'long', day: 'numeric',
 });
@@ -20,6 +21,7 @@ const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
 <DarkLayout
   title={`${slide.data.title} | a6x.dev`}
   description={slide.data.description}
+  ogImage={`/og/slides/${slug}.png`}
 >
   <div class="container slide-page">
     <a href="/slides" class="back-link">← Slides</a>

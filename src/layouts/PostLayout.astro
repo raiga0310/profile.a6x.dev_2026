@@ -6,12 +6,13 @@ interface Props {
   description?: string;
   publishedAt?: string;
   tags?: string[];
+  ogImage?: string;
 }
 
-const { title, description, publishedAt, tags } = Astro.props;
+const { title, description, publishedAt, tags, ogImage } = Astro.props;
 ---
 
-<BaseLayout title={`${title} | a6x.dev`} description={description}>
+<BaseLayout title={`${title} | a6x.dev`} description={description} ogImage={ogImage}>
   <article class="post container">
     <header class="post__header">
       <h1 class="post__title">{title}</h1>

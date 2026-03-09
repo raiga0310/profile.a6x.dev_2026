@@ -8,6 +8,7 @@
     "preview": "npm run build && wrangler dev",
     "astro": "astro",
     "slides:build": "mkdir -p public/slides && for f in typst/*.typ; do typst compile --font-path typst/fonts \"$f\" \"public/slides/$(basename ${f%.typ}).pdf\"; done",
+    "og:build": "node scripts/gen-og.mjs",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types"
   },

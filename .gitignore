@@ -6,6 +6,9 @@ dist/
 # Typst コンパイル済み PDF（CI で自動生成、ローカルは手動ビルド）
 public/slides/*.pdf
 
+# Typst 生成 OG 画像（CI で自動生成）
+public/og/
+
 # dependencies
 node_modules/
 
