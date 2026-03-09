@@ -23,8 +23,28 @@ const { pathname } = Astro.url;
         </li>
       ))}
     </ul>
+    <button class="theme-toggle" id="theme-toggle" aria-label="テーマ切り替え">
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
   </div>
 </nav>
+
+<script>
+  const btn = document.getElementById('theme-toggle');
+  function applyTheme(theme: string) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }
+  btn?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+</script>
 
 <style>
   .nav {
@@ -74,6 +94,31 @@ const { pathname } = Astro.url;
     color: var(--accent, #4a6cf7);
     text-decoration: none;
   }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 6px;
+    padding: 0.45rem 0.55rem;
+    margin-left: 1rem;
+    cursor: pointer;
+    color: var(--text-muted, #666);
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent, #4a6cf7);
+    border-color: var(--accent, #4a6cf7);
+  }
+
+  .icon-sun { display: none; }
+  .icon-moon { display: block; }
+
+  :global([data-theme="dark"]) .icon-sun { display: block; }
+  :global([data-theme="dark"]) .icon-moon { display: none; }
 
   /* dark theme override */
   :global(.slides-theme) .nav {

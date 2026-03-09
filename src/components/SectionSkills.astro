@@ -1,28 +1,79 @@
 ---
-const skills = [
+import {
+  siRust, siTypescript, siPhp, siC, siCplusplus, siPython,
+  siAstro, siReact, siNextdotjs, siBabylondotjs, siHtml5, siCss,
+  siPostgresql, siTokio, siBevy,
+  siGit, siGithubactions, siDocker, siGooglecloud, siCloudflare, siNewrelic, siGooglebigquery,
+  siTypst, siWebassembly,
+} from 'simple-icons';
+
+type SkillItem = { label: string; icon?: string };
+
+const skills: { category: string; items: SkillItem[] }[] = [
   {
     category: 'Languages',
-    items: ['Rust', 'TypeScript', 'PHP', 'C/C++', 'Java', 'Python'],
+    items: [
+      { label: 'Rust',       icon: siRust.path },
+      { label: 'TypeScript', icon: siTypescript.path },
+      { label: 'PHP',        icon: siPhp.path },
+      { label: 'C',          icon: siC.path },
+      { label: 'C++',        icon: siCplusplus.path },
+      { label: 'Python',     icon: siPython.path },
+      { label: 'Java' },
+    ],
   },
   {
     category: 'Frontend',
-    items: ['Astro', 'React', 'Next.js', 'Babylon.js', 'HTML5', 'CSS'],
+    items: [
+      { label: 'Astro',      icon: siAstro.path },
+      { label: 'React',      icon: siReact.path },
+      { label: 'Next.js',    icon: siNextdotjs.path },
+      { label: 'Babylon.js', icon: siBabylondotjs.path },
+      { label: 'HTML5',      icon: siHtml5.path },
+      { label: 'CSS',        icon: siCss.path },
+    ],
   },
   {
     category: 'Backend',
-    items: ['Axum', 'tokio', 'sqlx', 'PostgreSQL', 'Serenity', 'Shuttle', 'Bevy'],
+    items: [
+      { label: 'Axum' },
+      { label: 'tokio',      icon: siTokio.path },
+      { label: 'sqlx' },
+      { label: 'PostgreSQL', icon: siPostgresql.path },
+      { label: 'Serenity' },
+      { label: 'Shuttle' },
+      { label: 'Bevy',       icon: siBevy.path },
+    ],
   },
   {
     category: 'Tools & Infra',
-    items: ['Git', 'GitHub Actions', 'Docker', 'GCP', 'Cloudflare', 'New Relic', 'BigQuery'],
+    items: [
+      { label: 'Git',            icon: siGit.path },
+      { label: 'GitHub Actions', icon: siGithubactions.path },
+      { label: 'Docker',         icon: siDocker.path },
+      { label: 'GCP',            icon: siGooglecloud.path },
+      { label: 'Cloudflare',     icon: siCloudflare.path },
+      { label: 'New Relic',      icon: siNewrelic.path },
+      { label: 'BigQuery',       icon: siGooglebigquery.path },
+    ],
   },
   {
     category: '実務',
-    items: ['PHPStan', 'PHPUnit', 'TetoSQL'],
+    items: [
+      { label: 'PHPStan' },
+      { label: 'PHPUnit' },
+      { label: 'TetoSQL' },
+    ],
   },
   {
     category: 'Interests',
-    items: ['言語処理系', '型システム', 'Typst', 'OSS', 'WASM'],
+    items: [
+      { label: '言語処理系' },
+      { label: '型システム' },
+      { label: 'Typst', icon: siTypst.path },
+      { label: 'OSS' },
+      { label: 'WASM', icon: siWebassembly.path },
+    ],
   },
 ];
 ---
@@ -36,7 +87,22 @@ const skills = [
           <h3 class="skills__category">{group.category}</h3>
           <ul class="skills__list">
             {group.items.map(skill => (
-              <li class="tag">{skill}</li>
+              <li class="skill-tag">
+                {skill.icon && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    class="skill-tag__icon"
+                  >
+                    <path d={skill.icon} />
+                  </svg>
+                )}
+                <span>{skill.label}</span>
+              </li>
             ))}
           </ul>
         </div>
@@ -48,7 +114,7 @@ const skills = [
 <style>
   .skills__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.5rem;
   }
 
@@ -60,18 +126,36 @@ const skills = [
   }
 
   .skills__category {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: var(--accent);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
   }
 
   .skills__list {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.5rem;
+  }
+
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .skill-tag__icon {
+    flex-shrink: 0;
+    opacity: 0.85;
   }
 </style>

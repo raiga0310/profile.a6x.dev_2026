@@ -12,6 +12,16 @@
   --nav-h: 60px;
 }
 
+[data-theme="dark"] {
+  --bg: #1E2030;
+  --surface: #2A2D42;
+  --text: #EEEEEE;
+  --text-muted: #8890A4;
+  --border: #3A3D52;
+  --accent: #4DD9EF;
+  --accent-hover: #2bbdd4;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
