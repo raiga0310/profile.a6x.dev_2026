@@ -21,6 +21,7 @@ const slug = post.id.replace(/\.md$/, '');
   publishedAt={post.data.publishedAt}
   tags={post.data.tags}
   ogImage={`/og/posts/${slug}.png`}
+  aiInvolvement={post.data.aiInvolvement}
 >
   <Content />
 </PostLayout>

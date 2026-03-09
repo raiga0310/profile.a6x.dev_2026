@@ -27,6 +27,8 @@ const slides = defineCollection({
   }),
 });
 
+const aiLevel = z.enum(['none', 'human', 'ai']).default('none');
+
 const posts = defineCollection({
   type: 'content',
   schema: z.object({
@@ -35,6 +37,12 @@ const posts = defineCollection({
     publishedAt: z.string(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    aiInvolvement: z.object({
+      planning: aiLevel,
+      writing: aiLevel,
+      review: aiLevel,
+      proofreading: aiLevel,
+    }).optional(),
   }),
 });
 

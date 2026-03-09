@@ -1,0 +1,143 @@
+---
+type Level = 'none' | 'human' | 'ai';
+
+interface Props {
+  planning?: Level;
+  writing?: Level;
+  review?: Level;
+  proofreading?: Level;
+}
+
+const {
+  planning = 'none',
+  writing = 'none',
+  review = 'none',
+  proofreading = 'none',
+} = Astro.props;
+
+const stages: { label: string; value: Level }[] = [
+  { label: '立案', value: planning },
+  { label: '執筆', value: writing },
+  { label: 'レビュー', value: review },
+  { label: '校正', value: proofreading },
+];
+
+const levels: { id: Level; label: string }[] = [
+  { id: 'none', label: 'なし' },
+  { id: 'human', label: '人間の補助' },
+  { id: 'ai', label: 'AI のみ' },
+];
+
+const dotColor: Record<Level, string> = {
+  none: 'var(--text-muted)',
+  human: 'var(--accent)',
+  ai: '#6366f1',
+};
+
+const headerColor: Record<Level, string> = {
+  none: 'var(--text-muted)',
+  human: 'var(--accent)',
+  ai: '#6366f1',
+};
+---
+
+<div class="aia-wrap">
+  <p class="aia-title">AI 関与度</p>
+  <table class="aia-table">
+    <thead>
+      <tr>
+        <th class="aia-th aia-stage-col"></th>
+        {levels.map(level => (
+          <th class="aia-th aia-col" style={`color: ${headerColor[level.id]};`}>
+            {level.label}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {stages.map(stage => (
+        <tr class="aia-tr">
+          <td class="aia-td aia-stage">{stage.label}</td>
+          {levels.map(level => (
+            <td class="aia-td aia-cell">
+              {stage.value === level.id && (
+                <span
+                  class="aia-dot"
+                  style={`background: ${dotColor[level.id]};`}
+                ></span>
+              )}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style is:global>
+  .aia-wrap {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .aia-title {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted) !important;
+    margin: 0 0 0.75rem !important;
+  }
+
+  .aia-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .aia-th {
+    font-weight: normal;
+    padding: 0.2rem 0 0.4rem;
+    text-align: center !important;
+    font-size: 0.72rem;
+  }
+
+  .aia-stage-col {
+    width: 3.5rem;
+  }
+
+  .aia-table thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .aia-tr + .aia-tr {
+    border-top: 1px solid var(--border);
+  }
+
+  .aia-td {
+    padding: 0.45rem 0;
+  }
+
+  .aia-stage {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: left;
+    width: 3.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .aia-cell {
+    text-align: center;
+    height: 1.75rem;
+  }
+
+  .aia-dot {
+    display: inline-block !important;
+    width: 9px !important;
+    height: 9px !important;
+    border-radius: 50% !important;
+    vertical-align: middle;
+  }
+</style>

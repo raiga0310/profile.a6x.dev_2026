@@ -1,5 +1,8 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import AiInvolvement from '../components/AiInvolvement.astro';
+
+type AiLevel = 'none' | 'human' | 'ai';
 
 interface Props {
   title: string;
@@ -7,9 +10,15 @@ interface Props {
   publishedAt?: string;
   tags?: string[];
   ogImage?: string;
+  aiInvolvement?: {
+    planning?: AiLevel;
+    writing?: AiLevel;
+    review?: AiLevel;
+    proofreading?: AiLevel;
+  };
 }
 
-const { title, description, publishedAt, tags, ogImage } = Astro.props;
+const { title, description, publishedAt, tags, ogImage, aiInvolvement } = Astro.props;
 ---
 
 <BaseLayout title={`${title} | a6x.dev`} description={description} ogImage={ogImage}>
@@ -27,6 +36,14 @@ const { title, description, publishedAt, tags, ogImage } = Astro.props;
         </div>
       )}
     </header>
+    {aiInvolvement && (
+      <AiInvolvement
+        planning={aiInvolvement.planning}
+        writing={aiInvolvement.writing}
+        review={aiInvolvement.review}
+        proofreading={aiInvolvement.proofreading}
+      />
+    )}
     <div class="post__body prose">
       <slot />
     </div>

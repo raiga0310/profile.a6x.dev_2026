@@ -47,9 +47,9 @@ typst compile --format png --ppi 72 --font-path typst/fonts \
 `src/content.config.ts` で3コレクションを定義:
 - **products** — `src/content/products/*.md` (frontmatter: title, description, tags, github, url, featured)
 - **slides** — `src/content/slides/*.md` (frontmatter: title, date, event, pdf, tags, speakerdeck)
-- **posts** — `src/content/posts/*.md` (frontmatter: title, publishedAt, tags, draft)
+- **posts** — `src/content/posts/*.md` (frontmatter: title, description?, publishedAt, tags, draft)
 
-`[slug].astro` 側では `p.id.replace(/\.md$/, '')` でスラッグを生成している（Astro 5 では `id` に拡張子が含まれるため）。
+**Astro 5 の `p.id` には `.md` 拡張子が含まれる**ため、スラッグ生成・リンク生成のすべての箇所で `p.id.replace(/\.md$/, '')` が必要。`[slug].astro` の `getStaticPaths` と、一覧ページの `href` 生成の両方に適用すること。
 
 ### テーマ構成
 
@@ -67,6 +67,8 @@ typst compile --format png --ppi 72 --font-path typst/fonts \
 - 出力先: `public/og/{slides|posts|products}/{slug}.png`（`public/og/` は `.gitignore` 対象、CI が生成）
 - 各スラッグページが `/og/{collection}/{slug}.png` を `ogImage` prop としてレイアウトに渡す
 - サイトデフォルト OG 画像: `typst/og_images/og.typ`（パラメータなし）
+
+**`ogImage` prop は相対パスで渡す**（例: `/og/posts/slug.png`）。`BaseLayout` / `DarkLayout` 内で `new URL(ogImage, Astro.site).href` により絶対 URL に変換して `og:image` / `twitter:image` に出力する。SNS クローラーは絶対 URL を要求するため、レイアウト外で URL 変換しないこと。
 
 ### スライドビューア
 
