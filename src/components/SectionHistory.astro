@@ -4,26 +4,31 @@ const history = [
     period: '2025年8月〜2025年9月',
     title: 'Sansan株式会社 サマーインターン',
     desc: '技術本部 Data Intelligence EU MasterData グループにてインターン',
+    type: 'intern',
   },
   {
     period: '2023年10月〜',
     title: '株式会社PR TIMES 開発本部 長期インターン',
     desc: 'PHPによるバックエンド開発。PHPStan・PHPUnit・BigQuery等を活用',
+    type: 'intern',
   },
   {
     period: '2023年4月〜',
     title: '名古屋工業大学 第一部情報工学科 知能情報分野',
     desc: '',
+    type: 'academic',
   },
   {
     period: '2018年4月〜2023年3月',
     title: '豊田工業高等専門学校 情報工学科',
     desc: '寮生会班長（3年）、学生会執行部副会長（3・4年）',
+    type: 'academic',
   },
   {
     period: '2003年3月10日',
     title: '生まれる',
     desc: '愛知県出身',
+    type: 'life',
   },
 ];
 ---
@@ -31,14 +36,19 @@ const history = [
 <section class="section bg-alt" id="history">
   <div class="container">
     <h2 class="section-title">History</h2>
+    <div class="timeline__legend">
+      <span class="legend-item legend-item--intern">インターン</span>
+      <span class="legend-item legend-item--academic">学業</span>
+      <span class="legend-item legend-item--life">生活</span>
+    </div>
     <ol class="timeline">
-      {history.map((item, i) => (
+      {history.map((item) => (
         <li class="timeline__item">
-          <div class="timeline__dot" aria-hidden="true"></div>
+          <div class={`timeline__dot timeline__dot--${item.type}`} aria-hidden="true"></div>
           <div class="timeline__content">
             <span class="timeline__period">{item.period}</span>
             <h3 class="timeline__title">{item.title}</h3>
-            <p class="timeline__desc">{item.desc}</p>
+            {item.desc && <p class="timeline__desc">{item.desc}</p>}
           </div>
         </li>
       ))}
@@ -50,6 +60,33 @@ const history = [
   .bg-alt {
     background: var(--surface);
   }
+
+  .timeline__legend {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .legend-item::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .legend-item--intern::before { background: #f59e0b; }
+  .legend-item--academic::before { background: var(--accent); }
+  .legend-item--life::before { background: #a78bfa; }
 
   .timeline {
     list-style: none;
@@ -83,10 +120,11 @@ const history = [
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--accent);
-    border: none;
-    box-shadow: none;
   }
+
+  .timeline__dot--intern   { background: #f59e0b; }
+  .timeline__dot--academic { background: var(--accent); }
+  .timeline__dot--life     { background: #a78bfa; }
 
   .timeline__period {
     font-size: 0.8rem;
