@@ -39,7 +39,9 @@ jobs:
 
       # 4. デプロイ（Cloudflare Pages）
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=profile-a6x-dev
+        run: |
+          npx wrangler pages project create profile-a6x-dev --production-branch main || true
+          npx wrangler pages deploy dist --project-name=profile-a6x-dev --branch main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
