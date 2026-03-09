@@ -17,6 +17,7 @@ const ROOT = join(__dirname, '..');
 
 // cwd を ROOT に設定しているため、すべてのパスは ROOT からの相対パスで統一
 const TYPST_TEMPLATE = 'typst/og_images/og-page.typ';
+const TYPST_LANDING = 'typst/og_images/og.typ';
 const FONT_PATH = 'typst/fonts';
 
 /** Parse YAML-ish frontmatter (simple key: value only, no nested/arrays) */
@@ -86,7 +87,21 @@ const collections = [
   },
 ];
 
-let total = 0;
+// Landing ページ用 OG 画像（og.typ はパラメータなしで raiga0310 固定デザイン）
+console.log('  landing/index');
+mkdirSync(join(ROOT, 'public/og'), { recursive: true });
+const landingResult = spawnSync(
+  'typst',
+  ['compile', '--format', 'png', '--ppi', '72', '--font-path', FONT_PATH,
+   TYPST_LANDING, join(ROOT, 'public/og/index.png')],
+  { stdio: 'inherit', cwd: ROOT },
+);
+if (landingResult.status !== 0) {
+  console.error('  ✗ Failed: public/og/index.png');
+  process.exit(1);
+}
+
+let total = 1;
 for (const col of collections) {
   if (!existsSync(col.dir)) continue;
 
