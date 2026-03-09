@@ -1,0 +1,94 @@
+---
+const nav = [
+  { label: 'Home', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: 'Slides', href: '/slides' },
+  { label: 'Blog', href: '/blogs' },
+];
+const { pathname } = Astro.url;
+---
+
+<nav class="nav">
+  <div class="nav__inner container">
+    <a href="/" class="nav__logo">a6x.dev</a>
+    <ul class="nav__links">
+      {nav.map(item => (
+        <li>
+          <a
+            href={item.href}
+            class:list={['nav__link', { 'nav__link--active': pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)) }]}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    height: var(--nav-h);
+    border-bottom: 1px solid var(--border, #e0e0e0);
+    background: var(--surface, #fff);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .nav__logo {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text, #1a1a1a);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .nav__logo:hover {
+    text-decoration: none;
+    color: var(--accent, #4a6cf7);
+  }
+
+  .nav__links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav__link {
+    color: var(--text-muted, #666);
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav__link:hover,
+  .nav__link--active {
+    color: var(--accent, #4a6cf7);
+    text-decoration: none;
+  }
+
+  /* dark theme override */
+  :global(.slides-theme) .nav {
+    background: var(--slides-surface);
+    border-bottom-color: var(--slides-border);
+  }
+
+  :global(.slides-theme) .nav__logo,
+  :global(.slides-theme) .nav__link {
+    color: var(--slides-muted);
+  }
+
+  :global(.slides-theme) .nav__logo:hover,
+  :global(.slides-theme) .nav__link:hover,
+  :global(.slides-theme) .nav__link--active {
+    color: var(--slides-accent);
+  }
+</style>

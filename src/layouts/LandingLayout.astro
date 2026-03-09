@@ -1,0 +1,21 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <slot />
+</BaseLayout>
+
+<style is:global>
+  /* Landing page removes default top padding since hero is full-bleed */
+  body {
+    overflow-x: hidden;
+  }
+</style>

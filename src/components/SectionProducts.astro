@@ -1,0 +1,95 @@
+---
+import { getCollection } from 'astro:content';
+
+const allProducts = await getCollection('products');
+const featured = allProducts
+  .filter(p => p.data.featured)
+  .slice(0, 3);
+---
+
+<section class="section bg-alt" id="products">
+  <div class="container">
+    <h2 class="section-title">Products</h2>
+    {featured.length > 0 ? (
+      <div class="products__grid">
+        {featured.map(p => (
+          <a href={`/products/${p.id.replace(/\.md$/, '')}`} class="product-card">
+            <h3 class="product-card__title">{p.data.title}</h3>
+            <p class="product-card__desc">{p.data.description}</p>
+            <div class="product-card__tags">
+              {p.data.tags.slice(0, 3).map(tag => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="placeholder">制作物はまだありません。</p>
+    )}
+    <div class="products__more">
+      <a href="/products" class="more-link">すべての制作物を見る →</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bg-alt {
+    background: var(--surface);
+  }
+
+  .products__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .product-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s, transform 0.15s;
+    display: block;
+  }
+
+  .product-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+
+  .product-card__title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-card__desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .product-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .products__more {
+    text-align: right;
+  }
+
+  .more-link {
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+
+  .placeholder {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+</style>

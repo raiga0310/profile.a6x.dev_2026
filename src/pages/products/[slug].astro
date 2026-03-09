@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const products = await getCollection('products');
+  return products.map(p => ({
+    params: { slug: p.id.replace(/\.md$/, '') },
+    props: { product: p },
+  }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+---
+
+<BaseLayout
+  title={`${product.data.title} | a6x.dev`}
+  description={product.data.description}
+>
+  <article class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
+    <a href="/products" class="back-link">← Products</a>
+    <header class="product-header">
+      <h1 class="product-title">{product.data.title}</h1>
+      <p class="product-desc">{product.data.description}</p>
+      <div class="product-meta">
+        {product.data.tags.length > 0 && (
+          <div class="product-tags">
+            {product.data.tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+        <div class="product-links">
+          {product.data.github && (
+            <a href={product.data.github} target="_blank" rel="noopener" class="link-btn">
+              GitHub →
+            </a>
+          )}
+          {product.data.url && (
+            <a href={product.data.url} target="_blank" rel="noopener" class="link-btn">
+              URL →
+            </a>
+          )}
+        </div>
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .back-link {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link:hover {
+    color: var(--accent);
+  }
+
+  .product-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .product-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-desc {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .product-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .product-links {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .link-btn {
+    font-size: 0.875rem;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.25em 0.75em;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .link-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .prose :global(h2) { font-size: 1.4rem; margin: 2rem 0 0.75rem; }
+  .prose :global(h3) { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+  .prose :global(p) { margin-bottom: 1rem; line-height: 1.75; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose :global(li) { margin-bottom: 0.25rem; }
+  .prose :global(pre) {
+    background: #f4f4f4;
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+  .prose :global(a) { color: var(--accent); }
+</style>

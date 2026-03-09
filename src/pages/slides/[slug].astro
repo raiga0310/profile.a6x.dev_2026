@@ -1,0 +1,124 @@
+---
+import DarkLayout from '../../layouts/DarkLayout.astro';
+import SlideViewer from '../../components/SlideViewer.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const slides = await getCollection('slides');
+  return slides.map(s => ({
+    params: { slug: s.id.replace(/\.md$/, '') },
+    props: { slide: s },
+  }));
+}
+
+const { slide } = Astro.props;
+const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+
+<DarkLayout
+  title={`${slide.data.title} | a6x.dev`}
+  description={slide.data.description}
+>
+  <div class="container slide-page">
+    <a href="/slides" class="back-link">← Slides</a>
+    <header class="slide-header">
+      <h1 class="slide-title">{slide.data.title}</h1>
+      <p class="slide-meta">
+        <time datetime={slide.data.date}>{dateStr}</time>
+        {slide.data.event && <span class="slide-event"> · {slide.data.event}</span>}
+      </p>
+      {slide.data.description && (
+        <p class="slide-desc">{slide.data.description}</p>
+      )}
+      <div class="slide-tags">
+        {slide.data.tags.map(tag => <span class="slides-tag">{tag}</span>)}
+      </div>
+    </header>
+
+    <SlideViewer pdf={slide.data.pdf} />
+
+    {slide.data.speakerdeck && (
+      <div class="slide-external">
+        <a href={slide.data.speakerdeck} target="_blank" rel="noopener" class="ext-btn">
+          SpeakerDeck で見る →
+        </a>
+      </div>
+    )}
+  </div>
+</DarkLayout>
+
+<style>
+  .slide-page {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: var(--slides-muted);
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    color: var(--slides-accent);
+  }
+
+  .slide-header {
+    margin-bottom: 2rem;
+  }
+
+  .slide-title {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    color: var(--slides-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .slide-meta {
+    font-size: 0.875rem;
+    color: var(--slides-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .slide-event {
+    color: var(--slides-accent);
+  }
+
+  .slide-desc {
+    font-size: 0.95rem;
+    color: var(--slides-text);
+    opacity: 0.8;
+    margin-bottom: 0.75rem;
+  }
+
+  .slide-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .slide-external {
+    margin-top: 1.5rem;
+    text-align: right;
+  }
+
+  .ext-btn {
+    font-size: 0.875rem;
+    color: var(--slides-accent);
+    border: 1px solid var(--slides-accent);
+    padding: 0.4em 1em;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .ext-btn:hover {
+    background: var(--slides-accent);
+    color: var(--slides-bg);
+    text-decoration: none;
+  }
+</style>

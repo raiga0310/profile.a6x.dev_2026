@@ -1,0 +1,38 @@
+---
+import DarkLayout from '../../layouts/DarkLayout.astro';
+import SlideCard from '../../components/SlideCard.astro';
+import { getCollection } from 'astro:content';
+
+const slides = await getCollection('slides');
+slides.sort((a, b) => b.data.date.localeCompare(a.data.date));
+---
+
+<DarkLayout title="Slides | a6x.dev" description="raigaのスライド一覧">
+  <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
+    <h1 class="section-title" style="color: var(--slides-text);">Slides</h1>
+    {slides.length > 0 ? (
+      <div class="slides-grid">
+        {slides.map(s => (
+          <SlideCard
+            title={s.data.title}
+            date={s.data.date}
+            event={s.data.event}
+            description={s.data.description}
+            tags={s.data.tags}
+            href={`/slides/${s.id.replace(/\.md$/, '')}`}
+          />
+        ))}
+      </div>
+    ) : (
+      <p style="color: var(--slides-muted);">スライドはまだありません。</p>
+    )}
+  </div>
+</DarkLayout>
+
+<style>
+  .slides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+</style>

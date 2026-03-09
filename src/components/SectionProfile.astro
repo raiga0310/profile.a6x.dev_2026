@@ -1,0 +1,70 @@
+---
+---
+
+<section class="section" id="profile">
+  <div class="container">
+    <h2 class="section-title">Profile</h2>
+    <div class="profile__grid">
+      <div class="profile__bio">
+        <p>プログラミングと創作が好きなソフトウェアエンジニアです。</p>
+        <p>Web バックエンドを中心に、言語処理系・ツール開発・スライド制作など幅広く手を動かしています。散歩しながらアイデアを練るのが日課です。</p>
+        <p>プログラミング言語の設計思想や型システムに興味があり、Rust / TypeScript / Haskell などを好んで使います。</p>
+      </div>
+      <dl class="profile__meta">
+        <dt>場所</dt>
+        <dd>Japan</dd>
+        <dt>仕事</dt>
+        <dd>Software Engineer</dd>
+        <dt>趣味</dt>
+        <dd>プログラミング、創作、散歩</dd>
+        <dt>好きな言語</dt>
+        <dd>Rust, TypeScript, Haskell</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .profile__grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .profile__bio p {
+    margin-bottom: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .profile__meta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    align-items: baseline;
+  }
+
+  .profile__meta dt {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .profile__meta dd {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  @media (max-width: 700px) {
+    .profile__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

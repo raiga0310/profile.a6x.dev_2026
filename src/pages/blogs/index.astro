@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ExternalArticleCard from '../../components/ExternalArticleCard.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+import { fetchAllExternalArticles } from '../../lib/fetchArticles';
+
+const [externalArticles, sitePosts] = await Promise.all([
+  fetchAllExternalArticles(),
+  getCollection('posts', p => !p.data.draft),
+]);
+
+sitePosts.sort(
+  (a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime()
+);
+
+const tabs = ['All', 'Zenn', 'Qiita', 'This Site'] as const;
+type Tab = typeof tabs[number];
+---
+
+<BaseLayout title="Blog | a6x.dev" description="raigaのブログ記事一覧">
+  <div class="container blog-page">
+    <h1 class="section-title">Blog</h1>
+
+    <div class="tab-bar" role="tablist">
+      {tabs.map(tab => (
+        <button
+          role="tab"
+          class="tab-btn"
+          data-tab={tab}
+          aria-selected={tab === 'All' ? 'true' : 'false'}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+
+    <div class="articles-grid" id="articles-grid">
+      {sitePosts.map(p => (
+        <div class="article-item" data-source="This Site">
+          <BlogCard
+            title={p.data.title}
+            description={p.data.description}
+            publishedAt={p.data.publishedAt}
+            tags={p.data.tags}
+            href={`/blogs/posts/${p.id}`}
+          />
+        </div>
+      ))}
+      {externalArticles.map(a => (
+        <div class="article-item" data-source={a.source === 'zenn' ? 'Zenn' : 'Qiita'}>
+          <ExternalArticleCard article={a} />
+        </div>
+      ))}
+    </div>
+
+    {(sitePosts.length === 0 && externalArticles.length === 0) && (
+      <p style="color: var(--text-muted);">記事はまだありません。</p>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const btns = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+  const items = document.querySelectorAll<HTMLElement>('.article-item');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.setAttribute('aria-selected', 'false'));
+      btn.setAttribute('aria-selected', 'true');
+      const tab = btn.dataset.tab ?? 'All';
+      items.forEach(item => {
+        const show = tab === 'All' || item.dataset.source === tab;
+        item.style.display = show ? '' : 'none';
+      });
+    });
+  });
+</script>
+
+<style>
+  .blog-page {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .tab-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .tab-btn[aria-selected="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+</style>

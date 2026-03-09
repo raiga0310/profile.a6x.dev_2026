@@ -1,0 +1,87 @@
+/* a6x-dark-theme に準拠したカラーパレット */
+.slides-theme {
+  --slides-bg: #1E2030;        /* bg-dark: メイン背景 */
+  --slides-surface: #2A2D42;   /* bg-card: カード・パネル背景 */
+  --slides-code-bg: #14151F;   /* bg-code: コードブロック背景 */
+  --slides-text: #EEEEEE;      /* text-white: 本文テキスト */
+  --slides-muted: #8890A4;     /* text-muted: 控えめテキスト */
+  --slides-accent: #4DD9EF;    /* accent-cyan: メインアクセント */
+  --slides-accent-green: #00E676;
+  --slides-accent-red: #FF5252;
+  --slides-accent-yellow: #FFD740;
+  --slides-accent-hl: #EEF442; /* イエローグリーンハイライト */
+  --slides-table-header: #5B8CD0;
+  --slides-border: #3A3D52;    /* bg-card より少し明るめのボーダー */
+  --slides-font-sans: 'Meiryo', 'Yu Gothic UI', 'Noto Sans JP', system-ui, sans-serif;
+  --slides-font-mono: 'HackGen Console', 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.slides-theme body,
+.slides-theme {
+  background: var(--slides-bg);
+  color: var(--slides-text);
+  font-family: var(--slides-font-sans);
+}
+
+.slides-theme a {
+  color: var(--slides-accent);
+}
+
+.slides-theme .section-title {
+  color: var(--slides-accent);
+}
+
+.slides-theme .section-title::after {
+  background: var(--slides-accent);
+}
+
+.slides-card {
+  background: var(--slides-surface);
+  border: 1px solid var(--slides-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: border-color 0.2s, transform 0.2s;
+  display: block;
+  text-decoration: none;
+  color: var(--slides-text);
+}
+
+.slides-card:hover {
+  border-color: var(--slides-accent);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.slides-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--slides-accent);
+  margin-bottom: 0.5rem;
+}
+
+.slides-card__meta {
+  font-size: 0.8rem;
+  color: var(--slides-muted);
+  margin-bottom: 0.75rem;
+  font-family: var(--slides-font-mono);
+}
+
+.slides-card__desc {
+  font-size: 0.9rem;
+  color: var(--slides-text);
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+}
+
+.slides-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  background: var(--slides-bg);
+  color: var(--slides-accent);
+  border: 1px solid var(--slides-accent);
+  font-family: var(--slides-font-mono);
+  margin-right: 0.3rem;
+  margin-bottom: 0.3rem;
+}

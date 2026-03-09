@@ -1,0 +1,15 @@
+{
+  "name": "profile.a6x.dev",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "slides:build": "mkdir -p public/slides && for f in typst/*.typ; do typst compile --font-path typst/fonts \"$f\" \"public/slides/$(basename ${f%.typ}).pdf\"; done"
+  },
+  "dependencies": {
+    "astro": "^5.17.1"
+  }
+}

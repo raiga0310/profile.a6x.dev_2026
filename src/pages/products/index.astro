@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const products = await getCollection('products');
+products.sort((a, b) => (b.data.date ?? '').localeCompare(a.data.date ?? ''));
+---
+
+<BaseLayout title="Products | a6x.dev" description="raigaの制作物一覧">
+  <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
+    <h1 class="section-title">Products</h1>
+    {products.length > 0 ? (
+      <ul class="products-list">
+        {products.map(p => (
+          <li>
+            <a href={`/products/${p.id.replace(/\.md$/, '')}`} class="product-card">
+              <div class="product-card__body">
+                <h2 class="product-card__title">{p.data.title}</h2>
+                <p class="product-card__desc">{p.data.description}</p>
+                <div class="product-card__tags">
+                  {p.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                </div>
+              </div>
+              <div class="product-card__links">
+                {p.data.github && <span class="link-badge">GitHub</span>}
+                {p.data.url && <span class="link-badge">URL</span>}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p style="color: var(--text-muted);">制作物はまだありません。</p>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .products-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    height: 100%;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .product-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+
+  .product-card__title {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-card__desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .product-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .product-card__links {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .link-badge {
+    font-size: 0.75rem;
+    padding: 0.15em 0.5em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+  }
+</style>

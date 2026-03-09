@@ -1,0 +1,46 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Typst ビルド
+      - uses: typst-community/setup-typst@v4
+
+      - name: Compile Typst slides
+        run: |
+          mkdir -p public/slides
+          for f in typst/*.typ; do
+            [ -f "$f" ] || continue
+            typst compile --font-path typst/fonts "$f" "public/slides/$(basename "${f%.typ}").pdf"
+          done
+
+      # 2. Node.js セットアップ
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Astro ビルド（Zenn/Qiita API取得もこの中で実行）
+      - run: npm ci
+
+      - name: Build Astro
+        run: npm run build
+        env:
+          ZENN_USERNAME: ${{ vars.ZENN_USERNAME || 'ahoxa1rx' }}
+          QIITA_USERNAME: ${{ vars.QIITA_USERNAME || 'raiga0310' }}
+
+      # 4. デプロイ（Cloudflare Pages）
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=profile-a6x-dev

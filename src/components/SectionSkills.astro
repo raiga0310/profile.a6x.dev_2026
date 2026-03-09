@@ -1,0 +1,73 @@
+---
+const skills = [
+  {
+    category: 'Languages',
+    items: ['Rust', 'TypeScript', 'Python', 'Haskell', 'Go'],
+  },
+  {
+    category: 'Frontend',
+    items: ['Astro', 'React', 'CSS', 'Tailwind CSS'],
+  },
+  {
+    category: 'Backend',
+    items: ['Axum', 'Express', 'PostgreSQL', 'Redis'],
+  },
+  {
+    category: 'Tools & Infra',
+    items: ['Git', 'Docker', 'GitHub Actions', 'Cloudflare', 'Linux'],
+  },
+  {
+    category: 'Interests',
+    items: ['言語処理系', '型システム', 'Typst', 'OSS'],
+  },
+];
+---
+
+<section class="section" id="skills">
+  <div class="container">
+    <h2 class="section-title">Skills</h2>
+    <div class="skills__grid">
+      {skills.map(group => (
+        <div class="skills__group">
+          <h3 class="skills__category">{group.category}</h3>
+          <ul class="skills__list">
+            {group.items.map(skill => (
+              <li class="tag">{skill}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .skills__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skills__group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .skills__category {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .skills__list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+</style>

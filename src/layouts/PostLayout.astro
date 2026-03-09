@@ -1,0 +1,82 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  publishedAt?: string;
+  tags?: string[];
+}
+
+const { title, description, publishedAt, tags } = Astro.props;
+---
+
+<BaseLayout title={`${title} | a6x.dev`} description={description}>
+  <article class="post container">
+    <header class="post__header">
+      <h1 class="post__title">{title}</h1>
+      {publishedAt && (
+        <time class="post__date" datetime={publishedAt}>
+          {new Date(publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      )}
+      {tags && tags.length > 0 && (
+        <div class="post__tags">
+          {tags.map(tag => <span class="tag">{tag}</span>)}
+        </div>
+      )}
+    </header>
+    <div class="post__body prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    padding: 3rem 1.5rem;
+  }
+
+  .post__header {
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post__title {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .post__date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .post__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .prose :global(h2) { font-size: 1.5rem; margin: 2rem 0 1rem; }
+  .prose :global(h3) { font-size: 1.2rem; margin: 1.5rem 0 0.75rem; }
+  .prose :global(p) { margin-bottom: 1rem; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose :global(li) { margin-bottom: 0.25rem; }
+  .prose :global(pre) {
+    background: #f4f4f4;
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+    color: var(--text-muted);
+    margin: 1rem 0;
+  }
+</style>

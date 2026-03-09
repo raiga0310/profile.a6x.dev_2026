@@ -1,0 +1,27 @@
+---
+interface Props {
+  title: string;
+  date: string;
+  event?: string;
+  description?: string;
+  tags?: string[];
+  href: string;
+}
+
+const { title, date, event, description, tags = [], href } = Astro.props;
+const dateStr = new Date(date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<a href={href} class="slides-card">
+  <h2 class="slides-card__title">{title}</h2>
+  <p class="slides-card__meta">
+    <time datetime={date}>{dateStr}</time>
+    {event && <span> · {event}</span>}
+  </p>
+  {description && <p class="slides-card__desc">{description}</p>}
+  {tags.length > 0 && (
+    <div>
+      {tags.map(tag => <span class="slides-tag">{tag}</span>)}
+    </div>
+  )}
+</a>

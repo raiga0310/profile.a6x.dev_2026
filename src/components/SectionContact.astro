@@ -1,0 +1,66 @@
+---
+const contacts = [
+  { label: 'GitHub', href: 'https://github.com/raiga0310', icon: 'GH' },
+  { label: 'Zenn', href: 'https://zenn.dev/raiga', icon: 'Zn' },
+  { label: 'Qiita', href: 'https://qiita.com/raiga', icon: 'Qi' },
+  { label: 'Twitter / X', href: 'https://x.com/raiga0310', icon: 'X' },
+];
+---
+
+<section class="section" id="contact">
+  <div class="container">
+    <h2 class="section-title">Contact</h2>
+    <p class="contact__note">お仕事・コラボ・技術的な話題など、お気軽にどうぞ。</p>
+    <ul class="contact__list">
+      {contacts.map(c => (
+        <li>
+          <a href={c.href} target="_blank" rel="noopener" class="contact__link">
+            <span class="contact__icon" aria-hidden="true">{c.icon}</span>
+            <span>{c.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact__note {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .contact__list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .contact__link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .contact__link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .contact__icon {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--accent);
+    min-width: 1.5rem;
+    text-align: center;
+  }
+</style>
