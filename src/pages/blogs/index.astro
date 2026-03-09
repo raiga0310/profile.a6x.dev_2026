@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ExternalArticleCard from '../../components/ExternalArticleCard.astro';
 import BlogCard from '../../components/BlogCard.astro';
+import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
 import { fetchAllExternalArticles } from '../../lib/fetchArticles';
 
@@ -19,7 +20,12 @@ const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'Sizu', 'This Site'] as const;
 
 <BaseLayout title="Blog | a6x.dev" description="raigaのブログ記事一覧">
   <div class="container blog-page">
-    <h1 class="section-title">Blog</h1>
+    <div class="title-row">
+      <h1 class="section-title">Blog</h1>
+      <a href="/blogs/rss.xml" class="rss-link" aria-label="RSS フィード">
+        <Icon name="rss" size={18} color="#f26522" />
+      </a>
+    </div>
 
     <div class="tab-bar" role="tablist">
       {tabs.map(tab => (
@@ -80,6 +86,28 @@ const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'Sizu', 'This Site'] as const;
   .blog-page {
     padding-top: 3rem;
     padding-bottom: 4rem;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .title-row .section-title {
+    margin-bottom: 0;
+  }
+
+  .rss-link {
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .rss-link:hover {
+    opacity: 1;
   }
 
   .tab-bar {

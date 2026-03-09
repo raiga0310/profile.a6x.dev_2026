@@ -1,6 +1,7 @@
 ---
 import DarkLayout from '../../layouts/DarkLayout.astro';
 import SlideCard from '../../components/SlideCard.astro';
+import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
 
 const slides = await getCollection('slides');
@@ -9,7 +10,12 @@ slides.sort((a, b) => b.data.date.localeCompare(a.data.date));
 
 <DarkLayout title="Slides | a6x.dev" description="raigaのスライド一覧">
   <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
-    <h1 class="section-title" style="color: var(--slides-text);">Slides</h1>
+    <div class="title-row">
+      <h1 class="section-title" style="color: var(--slides-text);">Slides</h1>
+      <a href="/slides/rss.xml" class="rss-link" aria-label="RSS フィード">
+        <Icon name="rss" size={18} color="#f26522" />
+      </a>
+    </div>
     {slides.length > 0 ? (
       <div class="slides-grid">
         {slides.map(s => (
@@ -30,6 +36,28 @@ slides.sort((a, b) => b.data.date.localeCompare(a.data.date));
 </DarkLayout>
 
 <style>
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .title-row .section-title {
+    margin-bottom: 0;
+  }
+
+  .rss-link {
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .rss-link:hover {
+    opacity: 1;
+  }
+
   .slides-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
