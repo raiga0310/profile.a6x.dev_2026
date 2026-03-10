@@ -1,10 +1,10 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { isLocale, toSlug } from '../../i18n';
+import { isLocale, toSlug } from '../../../i18n';
 
 export async function getStaticPaths() {
-  const products = await getCollection('products', p => isLocale(p.id, 'ja'));
+  const products = await getCollection('products', p => isLocale(p.id, 'en'));
   return products.map(p => ({
     params: { slug: toSlug(p.id) },
     props: { product: p },
@@ -20,9 +20,10 @@ const slug = toSlug(product.id);
   title={`${product.data.title} | a6x.dev`}
   description={product.data.description}
   ogImage={`/og/products/${slug}.png`}
+  lang="en"
 >
   <article class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
-    <a href="/products" class="back-link">← Products</a>
+    <a href="/en/products" class="back-link">← Products</a>
     <header class="product-header">
       <h1 class="product-title">{product.data.title}</h1>
       <p class="product-desc">{product.data.description}</p>

@@ -10,6 +10,7 @@ interface Props {
   publishedAt?: string;
   tags?: string[];
   ogImage?: string;
+  lang?: string;
   aiInvolvement?: {
     planning?: AiLevel;
     writing?: AiLevel;
@@ -18,16 +19,17 @@ interface Props {
   };
 }
 
-const { title, description, publishedAt, tags, ogImage, aiInvolvement } = Astro.props;
+const { title, description, publishedAt, tags, ogImage, lang = 'ja', aiInvolvement } = Astro.props;
+const dateLocale = lang === 'en' ? 'en-US' : 'ja-JP';
 ---
 
-<BaseLayout title={`${title} | a6x.dev`} description={description} ogImage={ogImage}>
+<BaseLayout title={`${title} | a6x.dev`} description={description} ogImage={ogImage} lang={lang}>
   <article class="post container">
     <header class="post__header">
       <h1 class="post__title">{title}</h1>
       {publishedAt && (
         <time class="post__date" datetime={publishedAt}>
-          {new Date(publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date(publishedAt).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}
         </time>
       )}
       {tags && tags.length > 0 && (

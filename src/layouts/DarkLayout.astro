@@ -8,24 +8,33 @@ interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
+  lang?: string;
 }
 
 const {
   title = 'Slides | a6x.dev',
   description = 'raigaのスライド一覧',
   ogImage,
+  lang = 'ja',
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const { pathname } = Astro.url;
+const jaHref = new URL(pathname.startsWith('/en') ? pathname.replace(/^\/en/, '') || '/' : pathname, Astro.site);
+const enHref = new URL(pathname.startsWith('/en') ? pathname : `/en${pathname}`, Astro.site);
+const locale = (lang === 'en' ? 'en' : 'ja') as 'ja' | 'en';
 ---
 
 <!doctype html>
-<html lang="ja" class="slides-theme">
+<html lang={lang} class="slides-theme">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalURL} />
+    <link rel="alternate" hreflang="ja" href={jaHref} />
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="x-default" href={jaHref} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <title>{title}</title>
@@ -45,7 +54,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <Nav />
+    <Nav locale={locale} />
     <main>
       <slot />
     </main>

@@ -1,36 +1,55 @@
 ---
-const nav = [
-  { label: 'Home', href: '/' },
-  { label: 'Products', href: '/products' },
-  { label: 'Slides', href: '/slides' },
-  { label: 'Blog', href: '/blogs' },
-];
+import { useTranslations } from '../i18n';
+
+interface Props {
+  locale?: 'ja' | 'en';
+}
+
+const { locale = 'ja' } = Astro.props;
+const t = useTranslations(locale);
 const { pathname } = Astro.url;
+
+const base = locale === 'en' ? '/en' : '';
+const nav = [
+  { label: 'Home',     href: `${base}/` },
+  { label: 'Products', href: `${base}/products` },
+  { label: 'Slides',   href: `${base}/slides` },
+  { label: 'Blog',     href: `${base}/blogs` },
+];
+
+const altHref = locale === 'en'
+  ? pathname.replace(/^\/en/, '') || '/'
+  : `/en${pathname}`;
 ---
 
 <nav class="nav">
   <div class="nav__inner container">
-    <a href="/" class="nav__logo">a6x.dev</a>
+    <a href={`${base}/`} class="nav__logo">a6x.dev</a>
     <ul class="nav__links">
       {nav.map(item => (
         <li>
           <a
             href={item.href}
-            class:list={['nav__link', { 'nav__link--active': pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)) }]}
+            class:list={['nav__link', { 'nav__link--active': pathname === item.href || (item.href !== `${base}/` && pathname.startsWith(item.href)) }]}
           >
             {item.label}
           </a>
         </li>
       ))}
     </ul>
-    <button class="theme-toggle" id="theme-toggle" aria-label="テーマ切り替え">
-      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
-      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
+    <div class="nav__controls">
+      <a href={altHref} class="lang-switch" aria-label={`Switch to ${t('nav.lang')}`}>
+        {t('nav.lang')}
+      </a>
+      <button class="theme-toggle" id="theme-toggle" aria-label="テーマ切り替え">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </nav>
 
@@ -95,12 +114,33 @@ const { pathname } = Astro.url;
     text-decoration: none;
   }
 
+  .nav__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .lang-switch {
+    font-size: 0.8rem;
+    color: var(--text-muted, #666);
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 4px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .lang-switch:hover {
+    color: var(--accent, #4a6cf7);
+    border-color: var(--accent, #4a6cf7);
+    text-decoration: none;
+  }
+
   .theme-toggle {
     background: none;
     border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     padding: 0.45rem 0.55rem;
-    margin-left: 1rem;
     cursor: pointer;
     color: var(--text-muted, #666);
     display: flex;
@@ -127,13 +167,15 @@ const { pathname } = Astro.url;
   }
 
   :global(.slides-theme) .nav__logo,
-  :global(.slides-theme) .nav__link {
+  :global(.slides-theme) .nav__link,
+  :global(.slides-theme) .lang-switch {
     color: var(--slides-muted);
   }
 
   :global(.slides-theme) .nav__logo:hover,
   :global(.slides-theme) .nav__link:hover,
-  :global(.slides-theme) .nav__link--active {
+  :global(.slides-theme) .nav__link--active,
+  :global(.slides-theme) .lang-switch:hover {
     color: var(--slides-accent);
   }
 </style>

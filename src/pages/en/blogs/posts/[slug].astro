@@ -1,10 +1,10 @@
 ---
-import PostLayout from '../../../layouts/PostLayout.astro';
+import PostLayout from '../../../../layouts/PostLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { isLocale, toSlug } from '../../../i18n';
+import { isLocale, toSlug } from '../../../../i18n';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', p => !p.data.draft && isLocale(p.id, 'ja'));
+  const posts = await getCollection('posts', p => !p.data.draft && isLocale(p.id, 'en'));
   return posts.map(p => ({
     params: { slug: toSlug(p.id) },
     props: { post: p },
@@ -22,6 +22,7 @@ const slug = toSlug(post.id);
   publishedAt={post.data.publishedAt}
   tags={post.data.tags}
   ogImage={`/og/posts/${slug}.png`}
+  lang="en"
   aiInvolvement={post.data.aiInvolvement}
 >
   <Content />

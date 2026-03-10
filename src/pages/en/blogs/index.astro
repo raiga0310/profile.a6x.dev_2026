@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+import Icon from '../../../components/Icon.astro';
+import { getCollection } from 'astro:content';
+import { isLocale, toSlug } from '../../../i18n';
+
+const posts = await getCollection('posts', p => !p.data.draft && isLocale(p.id, 'en'));
+posts.sort(
+  (a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime()
+);
+---
+
+<BaseLayout title="Blog | a6x.dev" description="Blog posts by raiga" lang="en">
+  <div class="container blog-page">
+    <div class="title-row">
+      <h1 class="section-title">Blog</h1>
+      <a href="/en/blogs/rss.xml" class="rss-link" aria-label="RSS feed">
+        <Icon name="rss" size={18} color="#f26522" />
+      </a>
+    </div>
+
+    {posts.length > 0 ? (
+      <div class="articles-grid">
+        {posts.map(p => (
+          <BlogCard
+            title={p.data.title}
+            description={p.data.description}
+            publishedAt={p.data.publishedAt}
+            tags={p.data.tags}
+            href={`/en/blogs/posts/${toSlug(p.id)}`}
+          />
+        ))}
+      </div>
+    ) : (
+      <p style="color: var(--text-muted);">No posts yet.</p>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .blog-page {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .title-row .section-title {
+    margin-bottom: 0;
+  }
+
+  .rss-link {
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .rss-link:hover {
+    opacity: 1;
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+</style>

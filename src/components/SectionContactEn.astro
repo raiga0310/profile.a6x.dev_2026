@@ -1,0 +1,77 @@
+---
+import Icon from './Icon.astro';
+
+type IconName = 'github' | 'x' | 'instagram' | 'linkedin' | 'discord' | 'qiita' | 'zenn';
+
+const contacts: { label: string; href: string; icon: IconName; ariaLabel?: string }[] = [
+  { label: 'GitHub', href: 'https://github.com/raiga0310', icon: 'github' },
+  { label: 'Zenn', href: 'https://zenn.dev/ahoxa1rx', icon: 'zenn', ariaLabel: 'Zenn (contact)' },
+  { label: 'Qiita', href: 'https://qiita.com/raiga0310', icon: 'qiita' },
+  { label: 'Twitter / X', href: 'https://twitter.com/ahoxa1rx', icon: 'x' },
+  { label: 'Instagram', href: 'https://instagram.com/raiga__', icon: 'instagram' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/raiga-sasayama-768b661a5/', icon: 'linkedin' },
+  { label: 'Discord', href: 'https://discord.com/users/622077711309078529', icon: 'discord' },
+];
+---
+
+<section class="section" id="contact">
+  <div class="container">
+    <h2 class="section-title">Contact</h2>
+    <p class="contact__note">Feel free to reach out for work, collaboration, or tech discussion.</p>
+    <ul class="contact__list">
+      {contacts.map(c => (
+        <li>
+          <a href={c.href} target="_blank" rel="noopener" class="contact__link" aria-label={c.ariaLabel}>
+            <span class="contact__icon">
+              <Icon name={c.icon} size={18} />
+            </span>
+            <span>{c.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact__note {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .contact__list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .contact__link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .contact__link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .contact__icon {
+    display: flex;
+    align-items: center;
+    color: var(--accent);
+  }
+
+  .contact__link:hover .contact__icon {
+    color: var(--accent);
+  }
+</style>

@@ -1,19 +1,19 @@
 ---
-import DarkLayout from '../../layouts/DarkLayout.astro';
-import SlideCard from '../../components/SlideCard.astro';
-import Icon from '../../components/Icon.astro';
+import DarkLayout from '../../../layouts/DarkLayout.astro';
+import SlideCard from '../../../components/SlideCard.astro';
+import Icon from '../../../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { isLocale, toSlug } from '../../i18n';
+import { isLocale, toSlug } from '../../../i18n';
 
-const slides = await getCollection('slides', s => isLocale(s.id, 'ja'));
+const slides = await getCollection('slides', s => isLocale(s.id, 'en'));
 slides.sort((a, b) => b.data.date.localeCompare(a.data.date));
 ---
 
-<DarkLayout title="Slides | a6x.dev" description="raigaのスライド一覧">
+<DarkLayout title="Slides | a6x.dev" description="Slides by raiga" lang="en">
   <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
     <div class="title-row">
       <h1 class="section-title" style="color: var(--slides-text);">Slides</h1>
-      <a href="/slides/rss.xml" class="rss-link" aria-label="RSS フィード">
+      <a href="/en/slides/rss.xml" class="rss-link" aria-label="RSS feed">
         <Icon name="rss" size={18} color="#f26522" />
       </a>
     </div>
@@ -26,12 +26,12 @@ slides.sort((a, b) => b.data.date.localeCompare(a.data.date));
             event={s.data.event}
             description={s.data.description}
             tags={s.data.tags}
-            href={`/slides/${toSlug(s.id)}`}
+            href={`/en/slides/${toSlug(s.id)}`}
           />
         ))}
       </div>
     ) : (
-      <p style="color: var(--slides-muted);">スライドはまだありません。</p>
+      <p style="color: var(--slides-muted);">No slides yet.</p>
     )}
   </div>
 </DarkLayout>

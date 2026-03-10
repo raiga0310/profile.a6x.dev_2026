@@ -1,11 +1,11 @@
 ---
-import DarkLayout from '../../layouts/DarkLayout.astro';
-import SlideViewer from '../../components/SlideViewer.astro';
+import DarkLayout from '../../../layouts/DarkLayout.astro';
+import SlideViewer from '../../../components/SlideViewer.astro';
 import { getCollection } from 'astro:content';
-import { isLocale, toSlug } from '../../i18n';
+import { isLocale, toSlug } from '../../../i18n';
 
 export async function getStaticPaths() {
-  const slides = await getCollection('slides', s => isLocale(s.id, 'ja'));
+  const slides = await getCollection('slides', s => isLocale(s.id, 'en'));
   return slides.map(s => ({
     params: { slug: toSlug(s.id) },
     props: { slide: s },
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 
 const { slide } = Astro.props;
 const slug = toSlug(slide.id);
-const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
+const dateStr = new Date(slide.data.date).toLocaleDateString('en-US', {
   year: 'numeric', month: 'long', day: 'numeric',
 });
 ---
@@ -23,9 +23,10 @@ const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
   title={`${slide.data.title} | a6x.dev`}
   description={slide.data.description}
   ogImage={`/og/slides/${slug}.png`}
+  lang="en"
 >
   <div class="container slide-page">
-    <a href="/slides" class="back-link">← Slides</a>
+    <a href="/en/slides" class="back-link">← Slides</a>
     <header class="slide-header">
       <h1 class="slide-title">{slide.data.title}</h1>
       <p class="slide-meta">
@@ -45,7 +46,7 @@ const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
     {slide.data.speakerdeck && (
       <div class="slide-external">
         <a href={slide.data.speakerdeck} target="_blank" rel="noopener" class="ext-btn">
-          SpeakerDeck で見る →
+          View on SpeakerDeck →
         </a>
       </div>
     )}

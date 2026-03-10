@@ -5,10 +5,11 @@ import BlogCard from '../../components/BlogCard.astro';
 import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
 import { fetchAllExternalArticles } from '../../lib/fetchArticles';
+import { isLocale, toSlug } from '../../i18n';
 
 const [externalArticles, sitePosts] = await Promise.all([
   fetchAllExternalArticles(),
-  getCollection('posts', p => !p.data.draft),
+  getCollection('posts', p => !p.data.draft && isLocale(p.id, 'ja')),
 ]);
 
 sitePosts.sort(
@@ -48,7 +49,7 @@ const tabs = ['All', 'Zenn', 'Qiita', 'PR TIMES', 'Sizu', 'This Site'] as const;
             description={p.data.description}
             publishedAt={p.data.publishedAt}
             tags={p.data.tags}
-            href={`/blogs/posts/${p.id.replace(/\.md$/, '')}`}
+            href={`/blogs/posts/${toSlug(p.id)}`}
           />
         </div>
       ))}

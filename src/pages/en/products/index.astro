@@ -1,20 +1,20 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import { isLocale, toSlug } from '../../i18n';
+import { isLocale, toSlug } from '../../../i18n';
 
-const products = await getCollection('products', p => isLocale(p.id, 'ja'));
+const products = await getCollection('products', p => isLocale(p.id, 'en'));
 products.sort((a, b) => (b.data.date ?? '').localeCompare(a.data.date ?? ''));
 ---
 
-<BaseLayout title="Products | a6x.dev" description="raigaの制作物一覧">
+<BaseLayout title="Products | a6x.dev" description="Products by raiga" lang="en">
   <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
     <h1 class="section-title">Products</h1>
     {products.length > 0 ? (
       <ul class="products-list">
         {products.map(p => (
           <li>
-            <a href={`/products/${toSlug(p.id)}`} class="product-card">
+            <a href={`/en/products/${toSlug(p.id)}`} class="product-card">
               <div class="product-card__body">
                 <h2 class="product-card__title">{p.data.title}</h2>
                 <p class="product-card__desc">{p.data.description}</p>
@@ -31,7 +31,7 @@ products.sort((a, b) => (b.data.date ?? '').localeCompare(a.data.date ?? ''));
         ))}
       </ul>
     ) : (
-      <p style="color: var(--text-muted);">制作物はまだありません。</p>
+      <p style="color: var(--text-muted);">No products yet.</p>
     )}
   </div>
 </BaseLayout>

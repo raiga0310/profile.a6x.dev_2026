@@ -1,0 +1,96 @@
+---
+---
+
+<section class="section" id="profile">
+  <div class="container">
+    <h2 class="section-title">Profile</h2>
+    <div class="profile__grid">
+      <div class="profile__bio">
+        <p>A software engineer who loves programming and creative work.</p>
+        <p>Primarily focused on web backend development, I also work broadly on language processing, tooling, and slide creation. Thinking through ideas while walking is a daily habit.</p>
+        <p>I'm interested in the design philosophy of programming languages and type systems, and I enjoy working with Rust, TypeScript, and Haskell.</p>
+        <blockquote class="profile__quote">
+          <p><em>Even after coming out from the island of Octopus Tree to the capital of flowers, this tendency shows no sign of changing. Perhaps the South Seas daze has not yet worn off.</em></p>
+          <footer>— "Under the Octopus Tree" by Atsushi Nakajima</footer>
+        </blockquote>
+      </div>
+      <dl class="profile__meta">
+        <dt>Name</dt>
+        <dd>Raiga Sasayama</dd>
+        <dt>From</dt>
+        <dd>Aichi, Japan</dd>
+        <dt>Birthday</dt>
+        <dd>March 10</dd>
+        <dt>Hobbies</dt>
+        <dd>Programming, creative work, walking, reading</dd>
+        <dt>Favourite languages</dt>
+        <dd>Rust, TypeScript, Haskell</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .profile__grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .profile__bio p {
+    margin-bottom: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .profile__quote {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .profile__quote p {
+    margin-bottom: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .profile__quote footer {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  .profile__meta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    align-items: baseline;
+  }
+
+  .profile__meta dt {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .profile__meta dd {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  @media (max-width: 700px) {
+    .profile__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

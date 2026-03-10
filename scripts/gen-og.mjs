@@ -112,7 +112,8 @@ for (const col of collections) {
 
     if (fm.draft === 'true') continue;
 
-    const slug = file.replace(/\.md$/, '');
+    // Strip locale suffix: "slug.en.md" → "slug", "slug.md" → "slug"
+    const slug = file.replace(/\.en\.md$/, '').replace(/\.md$/, '');
     const title = fm.title || slug;
     const description = col.getDescription(fm);
     const outputPath = join(ROOT, `public/og/${col.name}/${slug}.png`);

@@ -1,0 +1,132 @@
+---
+---
+
+<section class="hero section" id="hero">
+  <div class="container hero__inner">
+    <div class="hero__text">
+      <p class="hero__greeting">Hi, I'm</p>
+      <h1 class="hero__name">raiga</h1>
+      <p class="hero__tagline">Software Engineer / Creative</p>
+      <div class="hero__cta">
+        <a href="#profile" class="btn btn--primary">About me</a>
+        <a href="/en/products" class="btn btn--outline">Products</a>
+      </div>
+    </div>
+    <div class="hero__icon" aria-hidden="true">
+      <div class="hero__avatar">r</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: 6rem 0 4rem;
+  }
+
+  .hero__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+
+  .hero__text {
+    max-width: 540px;
+  }
+
+  .hero__greeting {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .hero__name {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .hero__tagline {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .hero__cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .btn--primary {
+    background: var(--accent);
+    color: #fff;
+    border: 2px solid var(--accent);
+  }
+
+  .btn--primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    text-decoration: none;
+  }
+
+  .btn--outline {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+  }
+
+  .btn--outline:hover {
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .hero__icon {
+    flex-shrink: 0;
+  }
+
+  .hero__avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    font-weight: 800;
+    color: #fff;
+    user-select: none;
+  }
+
+  @media (max-width: 600px) {
+    .hero__inner {
+      flex-direction: column-reverse;
+      text-align: center;
+    }
+
+    .hero__cta {
+      justify-content: center;
+    }
+
+    .hero__avatar {
+      width: 120px;
+      height: 120px;
+      font-size: 3.5rem;
+    }
+  }
+</style>
