@@ -13,13 +13,17 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.12",
+    "@astrojs/cloudflare": "^12.6.5",
     "@astrojs/rss": "^4.0.15",
     "astro": "^5.17.1",
     "fast-xml-parser": "^5.4.2",
     "simple-icons": "^16.11.0"
   },
   "devDependencies": {
+    "wrangler": "^4.71.0"
+  },
+  "overrides": {
+    "undici": "^7.22.0",
     "wrangler": "^4.71.0"
   }
 }
