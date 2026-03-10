@@ -15,6 +15,7 @@ const nav = [
   { label: 'Products', href: `${base}/products` },
   { label: 'Slides',   href: `${base}/slides` },
   { label: 'Blog',     href: `${base}/blogs` },
+  { label: 'Arcade',   href: 'https://arcade.a6x.dev', external: true },
 ];
 
 const altHref = locale === 'en'
@@ -30,7 +31,8 @@ const altHref = locale === 'en'
         <li>
           <a
             href={item.href}
-            class:list={['nav__link', { 'nav__link--active': pathname === item.href || (item.href !== `${base}/` && pathname.startsWith(item.href)) }]}
+            class:list={['nav__link', { 'nav__link--active': !item.external && (pathname === item.href || (item.href !== `${base}/` && pathname.startsWith(item.href))) }]}
+            {...(item.external ? { target: '_blank', rel: 'noopener' } : {})}
           >
             {item.label}
           </a>
