@@ -29,6 +29,10 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# Playwright VRT
+playwright-report/
+test-results/
+
 # wrangler files
 .wrangler
 .dev.vars*

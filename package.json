@@ -10,7 +10,8 @@
     "slides:build": "mkdir -p public/slides && for f in typst/*.typ; do typst compile --font-path typst/fonts \"$f\" \"public/slides/$(basename ${f%.typ}).pdf\"; done",
     "og:build": "node scripts/gen-og.mjs",
     "deploy": "npm run build && wrangler deploy",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "test:vrt": "playwright test tests/vrt/"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.5",
@@ -20,6 +21,8 @@
     "simple-icons": "^16.11.0"
   },
   "devDependencies": {
+    "@argos-ci/playwright": "^3.0.0",
+    "@playwright/test": "^1.50.0",
     "wrangler": "^4.71.0"
   },
   "overrides": {
