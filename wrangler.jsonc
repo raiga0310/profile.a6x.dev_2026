@@ -1,5 +1,5 @@
 {
-  "main": "dist/_worker.js/index.js",
+  "main": "node_modules/@astrojs/cloudflare/dist/entrypoints/server.js",
   "name": "profile-a6x-dev",
   "compatibility_date": "2025-09-27",
   "compatibility_flags": [
