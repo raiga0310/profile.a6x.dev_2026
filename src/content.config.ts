@@ -1,7 +1,8 @@
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const products = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/products' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -15,7 +16,7 @@ const products = defineCollection({
 });
 
 const slides = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/slides' }),
   schema: z.object({
     title: z.string(),
     date: z.string(),
@@ -30,7 +31,7 @@ const slides = defineCollection({
 const aiLevel = z.enum(['none', 'human', 'ai']).default('none');
 
 const posts = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
