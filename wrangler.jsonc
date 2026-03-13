@@ -10,6 +10,9 @@
     "binding": "ASSETS",
     "directory": "dist"
   },
+  "routes": [
+    { "pattern": "profile.a6x.dev", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   },
