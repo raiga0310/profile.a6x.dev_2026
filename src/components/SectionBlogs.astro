@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import BlogCard from './BlogCard.astro';
+import { isLocale, toSlug } from '../i18n';
+
+const posts = await getCollection('posts', p => !p.data.draft && isLocale(p.id, 'ja'));
+posts.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+const recent = posts.slice(0, 3);
+---
+
+<section class="section" id="blogs">
+  <div class="container">
+    <h2 class="section-title">Blog</h2>
+    {recent.length > 0 ? (
+      <div class="blogs__grid">
+        {recent.map(p => (
+          <BlogCard
+            title={p.data.title}
+            description={p.data.description}
+            publishedAt={p.data.publishedAt}
+            tags={p.data.tags}
+            href={`/blogs/posts/${toSlug(p.id)}`}
+          />
+        ))}
+      </div>
+    ) : (
+      <p class="placeholder">記事はまだありません。</p>
+    )}
+    <div class="blogs__more">
+      <a href="/blogs" class="more-link">すべての記事を見る →</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .blogs__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .blogs__more {
+    text-align: right;
+  }
+
+  .more-link {
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+
+  .placeholder {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+</style>
