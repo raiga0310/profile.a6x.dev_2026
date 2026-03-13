@@ -38,6 +38,7 @@ const posts = defineCollection({
     publishedAt: z.string(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    featured: z.boolean().default(false),
     aiInvolvement: z.object({
       planning: aiLevel,
       writing: aiLevel,

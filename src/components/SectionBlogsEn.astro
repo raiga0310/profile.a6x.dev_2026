@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BlogCard from './BlogCard.astro';
 import { isLocale, toSlug } from '../i18n';
 
-const posts = await getCollection('posts', p => !p.data.draft && isLocale(p.id, 'en'));
+const posts = await getCollection('posts', p => !p.data.draft && p.data.featured && isLocale(p.id, 'en'));
 posts.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 const recent = posts.slice(0, 3);
 ---
