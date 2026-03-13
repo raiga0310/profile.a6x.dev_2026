@@ -40,11 +40,9 @@ jobs:
           ZENN_USERNAME: ${{ vars.ZENN_USERNAME || 'ahoxa1rx' }}
           QIITA_USERNAME: ${{ vars.QIITA_USERNAME || 'raiga0310' }}
 
-      # 4. デプロイ（Cloudflare Pages）
-      - name: Deploy to Cloudflare Pages
-        run: |
-          npx wrangler pages project create profile-a6x-dev --production-branch main || true
-          npx wrangler pages deploy dist --project-name=profile-a6x-dev --branch main --commit-message="deploy $(git rev-parse --short HEAD)"
+      # 4. デプロイ（Cloudflare Workers）
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
