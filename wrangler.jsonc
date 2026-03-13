@@ -8,7 +8,7 @@
   ],
   "assets": {
     "binding": "ASSETS",
-    "directory": "dist"
+    "directory": "dist/client"
   },
   "routes": [
     { "pattern": "profile.a6x.dev", "custom_domain": true }
