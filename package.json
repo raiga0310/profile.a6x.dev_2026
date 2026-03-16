@@ -14,7 +14,7 @@
     "test:vrt": "playwright test tests/vrt/"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.0.2",
+    "@astrojs/cloudflare": "^13.1.1",
     "@astrojs/rss": "^4.0.17",
     "astro": "^6.0.2",
     "fast-xml-parser": "^5.4.2",
