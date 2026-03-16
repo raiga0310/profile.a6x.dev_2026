@@ -21,7 +21,7 @@
     "simple-icons": "^16.11.0"
   },
   "devDependencies": {
-    "@argos-ci/playwright": "^3.0.0",
+    "@argos-ci/playwright": "^6.4.2",
     "@playwright/test": "^1.50.0",
     "wrangler": "^4.72.0"
   },
