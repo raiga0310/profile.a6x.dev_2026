@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v6
 
       # 1. Typst ビルド
-      - uses: typst-community/setup-typst@v4
+      - uses: typst-community/setup-typst@v5
 
       - name: Compile Typst slides
         run: |
