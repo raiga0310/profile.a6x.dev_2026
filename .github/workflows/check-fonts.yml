@@ -1,0 +1,21 @@
+name: Check Typst Fonts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check-fonts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: typst-community/setup-typst@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Check for font name mismatches
+        run: python3 scripts/check-fonts.py
