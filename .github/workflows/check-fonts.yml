@@ -1,0 +1,51 @@
+name: Check Typst Fonts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check-fonts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: typst-community/setup-typst@v4
+
+      - name: Check required fonts are present
+        run: |
+          REQUIRED_FONTS=(
+            "HackGen Console"
+            "HackGen35 Console"
+          )
+
+          available=$(typst fonts --font-path typst/fonts)
+          missing=()
+
+          for font in "${REQUIRED_FONTS[@]}"; do
+            if echo "$available" | grep -qF "$font"; then
+              echo "  [OK] $font"
+            else
+              echo "  [NG] $font"
+              missing+=("$font")
+            fi
+          done
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo ""
+            echo "::error::Required font(s) not found in typst/fonts/:"
+            for font in "${missing[@]}"; do
+              echo "::error::  missing: \"$font\""
+            done
+            echo ""
+            echo "Available fonts in typst/fonts/:"
+            echo "$available"
+            echo ""
+            echo "Fix: add the TTF/OTF file to typst/fonts/ and verify its family name matches."
+            echo "     python3 scripts/check-font-name.py typst/fonts/<file>.ttf"
+            exit 1
+          fi
+
+          echo ""
+          echo "All required fonts found."

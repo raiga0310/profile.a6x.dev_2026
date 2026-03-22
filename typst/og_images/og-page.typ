@@ -26,7 +26,7 @@
     inset: 60pt,
   )[
     #set text(
-      font: ("HackGen Console NF", "HackGen35 Console NF", "New Computer Modern"),
+      font: ("HackGen Console", "HackGen35 Console", "New Computer Modern"),
       weight: "medium",
       fill: text-color,
     )
