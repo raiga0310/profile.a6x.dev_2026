@@ -13,39 +13,49 @@ jobs:
 
       - uses: typst-community/setup-typst@v4
 
-      - name: Check required fonts are present
+      - name: Check for missing fonts (compile-based)
         run: |
-          REQUIRED_FONTS=(
-            "HackGen Console"
-            "HackGen35 Console"
-          )
+          tmpdir=$(mktemp -d)
+          failed=0
 
-          available=$(typst fonts --font-path typst/fonts)
-          missing=()
-
-          for font in "${REQUIRED_FONTS[@]}"; do
-            if echo "$available" | grep -qF "$font"; then
-              echo "  [OK] $font"
+          compile_check() {
+            local label="$1"; shift
+            local log="$tmpdir/${label}.log"
+            typst compile --font-path typst/fonts "$@" 2>"$log" || true
+            local warnings
+            warnings=$(grep "warning: unknown font family" "$log" || true)
+            if [ -n "$warnings" ]; then
+              echo "[NG] $label"
+              echo "$warnings" | sed 's/^/       /'
+              echo "$warnings" | while IFS= read -r line; do
+                echo "::error file=typst/${label}::$line"
+              done
+              failed=1
             else
-              echo "  [NG] $font"
-              missing+=("$font")
+              echo "[OK] $label"
             fi
+          }
+
+          # og_images: sys.inputs が必要なものはダミー値を渡す
+          compile_check "og_images/og-page.typ" \
+            --input title="Font Check" --input description="" --input kind="Test" \
+            --format png "typst/og_images/og-page.typ" "$tmpdir/og-page.png"
+
+          compile_check "og_images/og.typ" \
+            --format png "typst/og_images/og.typ" "$tmpdir/og.png"
+
+          # typst/ 直下の .typ ファイル（スライド等）
+          for f in typst/*.typ; do
+            [ -f "$f" ] || continue
+            label="$(basename "$f")"
+            compile_check "$label" "$f" "$tmpdir/${label%.typ}.pdf"
           done
 
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo ""
-            echo "::error::Required font(s) not found in typst/fonts/:"
-            for font in "${missing[@]}"; do
-              echo "::error::  missing: \"$font\""
-            done
-            echo ""
-            echo "Available fonts in typst/fonts/:"
-            echo "$available"
-            echo ""
-            echo "Fix: add the TTF/OTF file to typst/fonts/ and verify its family name matches."
-            echo "     python3 scripts/check-font-name.py typst/fonts/<file>.ttf"
+          echo ""
+          if [ $failed -ne 0 ]; then
+            echo "::error::Missing fonts detected. Add the TTF/OTF to typst/fonts/ and verify"
+            echo "::error::the embedded family name with: python3 scripts/check-font-name.py <file>"
             exit 1
           fi
 
-          echo ""
-          echo "All required fonts found."
+          echo "All font checks passed."
