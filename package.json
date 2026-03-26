@@ -18,6 +18,8 @@
     "@astrojs/rss": "^4.0.17",
     "astro": "^6.0.4",
     "fast-xml-parser": "^5.5.5",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
     "simple-icons": "^16.12.0"
   },
   "devDependencies": {

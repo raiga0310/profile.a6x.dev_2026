@@ -1,0 +1,58 @@
+---
+import BookLayout from '../../../layouts/BookLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books', b => !b.data.draft);
+  const allChapters = await getCollection('chapters', c => !c.data.draft);
+
+  const paths = [];
+
+  for (const book of books) {
+    const bookSlug = book.id.replace(/\/index$/, '').replace(/\/index\.md$/, '');
+    const bookChapters = allChapters
+      .filter(c => c.id.startsWith(bookSlug + '/') && !c.id.endsWith('/index') && !c.id.endsWith('/index.md'))
+      .map(c => ({
+        entry: c,
+        slug: c.id.replace(bookSlug + '/', '').replace(/\.md$/, ''),
+        title: c.data.title,
+        order: c.data.order,
+      }));
+
+    const chapterMeta = bookChapters.map(c => ({
+      slug: c.slug,
+      title: c.title,
+      order: c.order,
+    }));
+
+    for (const ch of bookChapters) {
+      paths.push({
+        params: { book: bookSlug, chapter: ch.slug },
+        props: {
+          bookSlug,
+          bookTitle: book.data.title,
+          chapterEntry: ch.entry,
+          chapterSlug: ch.slug,
+          chapters: chapterMeta,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { bookSlug, bookTitle, chapterEntry, chapterSlug, chapters } = Astro.props;
+const { Content } = await render(chapterEntry);
+---
+
+<BookLayout
+  bookSlug={bookSlug}
+  bookTitle={bookTitle}
+  chapterTitle={chapterEntry.data.title}
+  description={chapterEntry.data.description}
+  chapters={chapters}
+  currentSlug={chapterSlug}
+>
+  <Content />
+</BookLayout>

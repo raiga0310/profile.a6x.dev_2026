@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const books = await getCollection('books', b => !b.data.draft);
+books.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+---
+
+<BaseLayout title="Books | a6x.dev" description="技術書・解説まとめ">
+  <div class="container books-page">
+    <h1 class="section-title">Books</h1>
+    <p class="books-page__lead">技術的なトピックを章立てでまとめた読み物です。</p>
+
+    {books.length === 0 ? (
+      <p style="color: var(--text-muted);">本はまだありません。</p>
+    ) : (
+      <ul class="books-list">
+        {books.map(book => {
+          const slug = book.id.replace(/\/index$/, '').replace(/\/index\.md$/, '');
+          return (
+            <li class="book-card">
+              <a href={`/books/${slug}`} class="book-card__link">
+                <div class="book-card__body">
+                  <h2 class="book-card__title">{book.data.title}</h2>
+                  {book.data.description && (
+                    <p class="book-card__desc">{book.data.description}</p>
+                  )}
+                  {book.data.tags.length > 0 && (
+                    <div class="book-card__tags">
+                      {book.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                    </div>
+                  )}
+                </div>
+                <time class="book-card__date" datetime={book.data.publishedAt}>
+                  {new Date(book.data.publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
+                </time>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .books-page {
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .books-page__lead {
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .books-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .book-card__link {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .book-card__link:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
+  .book-card__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .book-card__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .book-card__link:hover .book-card__title {
+    color: var(--accent);
+  }
+
+  .book-card__desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+    line-height: 1.5;
+  }
+
+  .book-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .book-card__date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    padding-top: 0.15rem;
+  }
+</style>
