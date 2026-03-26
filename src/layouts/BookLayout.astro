@@ -1,0 +1,305 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface ChapterEntry {
+  slug: string;
+  title: string;
+  order?: number;
+}
+
+interface Props {
+  bookSlug: string;
+  bookTitle: string;
+  chapterTitle: string;
+  description?: string;
+  chapters: ChapterEntry[];
+  currentSlug: string;
+  lang?: string;
+}
+
+const { bookSlug, bookTitle, chapterTitle, description, chapters, currentSlug, lang = 'ja' } = Astro.props;
+
+const sorted = [...chapters].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+const currentIndex = sorted.findIndex(c => c.slug === currentSlug);
+const prev = currentIndex > 0 ? sorted[currentIndex - 1] : null;
+const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
+---
+
+<BaseLayout title={`${chapterTitle} — ${bookTitle} | a6x.dev`} description={description} lang={lang}>
+  <div class="book-layout">
+    <aside class="book-sidebar">
+      <div class="book-sidebar__inner">
+        <a href={`/books/${bookSlug}`} class="book-sidebar__title">{bookTitle}</a>
+        <nav class="book-toc">
+          <ol class="book-toc__list">
+            {sorted.map(ch => (
+              <li class:list={['book-toc__item', { 'book-toc__item--active': ch.slug === currentSlug }]}>
+                <a href={`/books/${bookSlug}/${ch.slug}`} class="book-toc__link">
+                  {ch.order != null && <span class="book-toc__num">{ch.order}.</span>}
+                  {ch.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="book-main">
+      <article class="book-chapter">
+        <header class="book-chapter__header">
+          <a href={`/books/${bookSlug}`} class="book-chapter__back">← {bookTitle}</a>
+          <h1 class="book-chapter__title">{chapterTitle}</h1>
+        </header>
+        <div class="prose book-chapter__body">
+          <slot />
+        </div>
+        <nav class="book-nav">
+          {prev ? (
+            <a href={`/books/${bookSlug}/${prev.slug}`} class="book-nav__link book-nav__link--prev">
+              <span class="book-nav__label">前のチャプター</span>
+              <span class="book-nav__title">← {prev.title}</span>
+            </a>
+          ) : <span />}
+          {next ? (
+            <a href={`/books/${bookSlug}/${next.slug}`} class="book-nav__link book-nav__link--next">
+              <span class="book-nav__label">次のチャプター</span>
+              <span class="book-nav__title">{next.title} →</span>
+            </a>
+          ) : <span />}
+        </nav>
+      </article>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .book-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - var(--nav-h, 56px) - 60px);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .book-sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    position: sticky;
+    top: var(--nav-h, 56px);
+    height: calc(100vh - var(--nav-h, 56px));
+    overflow-y: auto;
+  }
+
+  .book-sidebar__inner {
+    padding: 0 1.5rem;
+  }
+
+  .book-sidebar__title {
+    display: block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
+    text-decoration: none;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .book-sidebar__title:hover {
+    color: var(--accent);
+  }
+
+  .book-toc__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .book-toc__link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .book-toc__link:hover {
+    background: var(--surface-alt, #f5f5f5);
+    color: var(--text);
+  }
+
+  .book-toc__item--active .book-toc__link {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .book-toc__num {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    min-width: 1.2rem;
+  }
+
+  .book-main {
+    padding: 2.5rem 3rem;
+    min-width: 0;
+  }
+
+  .book-chapter__back {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.12s;
+  }
+
+  .book-chapter__back:hover {
+    color: var(--accent);
+  }
+
+  .book-chapter__title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .prose :global(h2),
+  .prose :global(h3) {
+    scroll-margin-top: calc(var(--nav-h) + 0.75rem);
+  }
+  .prose :global(h2) { font-size: 1.5rem; margin: 2rem 0 1rem; }
+  .prose :global(h3) { font-size: 1.2rem; margin: 1.5rem 0 0.75rem; }
+
+  .prose :global(.heading-anchor) {
+    opacity: 0;
+    margin-left: 0.4em;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.8em;
+    text-decoration: none;
+    vertical-align: middle;
+    transition: opacity 0.15s;
+    user-select: none;
+  }
+  .prose :global(h2:hover .heading-anchor),
+  .prose :global(h3:hover .heading-anchor) {
+    opacity: 1;
+  }
+  .prose :global(h2:hover .heading-anchor:hover),
+  .prose :global(h3:hover .heading-anchor:hover) {
+    color: var(--accent);
+  }
+  .prose :global(p) { margin-bottom: 1rem; line-height: 1.75; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose :global(li) { margin-bottom: 0.3rem; line-height: 1.65; }
+  .prose :global(pre) {
+    background: var(--surface-alt, #f4f4f4);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .prose :global(code:not(pre code)) {
+    background: var(--surface-alt, #f4f4f4);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.875em;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+    color: var(--text-muted);
+    margin: 1rem 0;
+  }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .prose :global(th), .prose :global(td) {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .prose :global(th) {
+    background: var(--surface-alt, #f4f4f4);
+    font-weight: 600;
+  }
+
+  .book-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .book-nav__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    max-width: 45%;
+    transition: border-color 0.12s, color 0.12s;
+  }
+
+  .book-nav__link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .book-nav__link--next {
+    margin-left: auto;
+    text-align: right;
+  }
+
+  .book-nav__label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .book-nav__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .book-nav__link:hover .book-nav__title {
+    color: var(--accent);
+  }
+
+  @media (max-width: 768px) {
+    .book-layout {
+      grid-template-columns: 1fr;
+    }
+    .book-sidebar {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+    .book-main {
+      padding: 1.5rem 1.25rem;
+    }
+    .book-nav__link {
+      max-width: 48%;
+    }
+  }
+</style>

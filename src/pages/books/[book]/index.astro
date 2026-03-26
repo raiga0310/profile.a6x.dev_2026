@@ -1,0 +1,206 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AiInvolvement from '../../../components/AiInvolvement.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books', b => !b.data.draft);
+  const chapters = await getCollection('chapters', c => !c.data.draft);
+
+  return books.map(book => {
+    const bookSlug = book.id.replace(/\/index$/, '').replace(/\/index\.md$/, '');
+    const bookChapters = chapters
+      .filter(c => c.id.startsWith(bookSlug + '/') && !c.id.endsWith('/index') && !c.id.endsWith('/index.md'))
+      .map(c => ({
+        slug: c.id.replace(bookSlug + '/', '').replace(/\.md$/, ''),
+        title: c.data.title,
+        order: c.data.order,
+        description: c.data.description,
+      }))
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+    return {
+      params: { book: bookSlug },
+      props: { book, bookSlug, chapters: bookChapters },
+    };
+  });
+}
+
+const { book, bookSlug, chapters } = Astro.props;
+---
+
+<BaseLayout title={`${book.data.title} | a6x.dev`} description={book.data.description}>
+  <div class="container book-index-page">
+    <a href="/books" class="back-link">← Books</a>
+
+    <header class="book-header">
+      <h1 class="book-header__title">{book.data.title}</h1>
+      <p class="book-header__desc">{book.data.description}</p>
+      <div class="book-header__meta">
+        {book.data.tags.length > 0 && (
+          <div class="book-header__tags">
+            {book.data.tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+        <time class="book-header__date" datetime={book.data.publishedAt}>
+          {new Date(book.data.publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </div>
+    </header>
+
+    {book.data.aiInvolvement && (
+      <AiInvolvement
+        planning={book.data.aiInvolvement.planning}
+        writing={book.data.aiInvolvement.writing}
+        review={book.data.aiInvolvement.review}
+        proofreading={book.data.aiInvolvement.proofreading}
+      />
+    )}
+
+    {chapters.length > 0 && (
+      <section class="book-toc-section">
+        <h2 class="book-toc-section__heading">目次</h2>
+        <ol class="book-toc-section__list">
+          {chapters.map(ch => (
+            <li class="book-toc-section__item">
+              <a href={`/books/${bookSlug}/${ch.slug}`} class="book-toc-section__link">
+                {ch.order != null && <span class="book-toc-section__num">{ch.order}.</span>}
+                <span class="book-toc-section__title">{ch.title}</span>
+                {ch.description && <span class="book-toc-section__desc">{ch.description}</span>}
+              </a>
+            </li>
+          ))}
+        </ol>
+        <a href={`/books/${bookSlug}/${chapters[0].slug}`} class="btn-start">最初のチャプターを読む →</a>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .book-index-page {
+    padding: 2.5rem 1.5rem 4rem;
+    max-width: 720px;
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+    transition: color 0.12s;
+  }
+
+  .back-link:hover {
+    color: var(--accent);
+  }
+
+  .book-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .book-header__title {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .book-header__desc {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+
+  .book-header__meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .book-header__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .book-header__date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .book-toc-section__heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+  }
+
+  .book-toc-section__list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .book-toc-section__link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.12s;
+  }
+
+  .book-toc-section__link:hover {
+    border-color: var(--accent);
+  }
+
+  .book-toc-section__num {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    min-width: 1.4rem;
+  }
+
+  .book-toc-section__title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  .book-toc-section__link:hover .book-toc-section__title {
+    color: var(--accent);
+  }
+
+  .book-toc-section__desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .btn-start {
+    display: inline-block;
+    padding: 0.65rem 1.5rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.12s;
+  }
+
+  .btn-start:hover {
+    opacity: 0.85;
+  }
+</style>

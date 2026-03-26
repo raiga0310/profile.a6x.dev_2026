@@ -48,4 +48,31 @@ const posts = defineCollection({
   }),
 });
 
-export const collections = { products, slides, posts };
+const books = defineCollection({
+  loader: glob({ pattern: '*/index.md', base: './src/content/books' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    publishedAt: z.string(),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+    aiInvolvement: z.object({
+      planning: aiLevel,
+      writing: aiLevel,
+      review: aiLevel,
+      proofreading: aiLevel,
+    }).optional(),
+  }),
+});
+
+const chapters = defineCollection({
+  loader: glob({ pattern: '*/*.md', base: './src/content/books' }),
+  schema: z.object({
+    title: z.string(),
+    order: z.number().optional(),
+    draft: z.boolean().default(false),
+    description: z.string().optional(),
+  }),
+});
+
+export const collections = { products, slides, posts, books, chapters };
