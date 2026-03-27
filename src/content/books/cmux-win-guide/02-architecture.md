@@ -91,7 +91,13 @@ Server → server_out_tx → fan_out → ipc_out_tx → Pipe → CLI
 // send-keys: 受信なし（PTY 出力は非同期に ServerMessage::Output として届く）
 ```
 
-`list-panes` / `send-keys` / `capture-pane` / `split-pane` の4サブコマンドを実装する。
+`list-panes` / `send-keys` / `capture-pane` / `split-pane` の4サブコマンドに加え、レイアウト管理コマンドも実装している。
+
+```bash
+yatamux layout list              # 保存済みレイアウト名を一覧表示
+yatamux layout delete my-project # レイアウトファイルを削除
+yatamux layout export my-project # TOML 内容を標準出力に出力
+```
 
 ## フック設定
 
@@ -115,3 +121,27 @@ on_session_end   = ""
 | `on_session_end` | `WM_CLOSE` でセッション保存直前 |
 
 エージェントオーケストレーションの自動化（ペイン生成時に別ツールへ通知する等）を想定した機能だ。
+
+## 外観設定
+
+`%APPDATA%\yatamux\config.toml` の `[appearance]` セクションでフォント・カラーを設定できる。
+
+```toml
+[appearance]
+font_family = "HackGen Console NF"
+font_size = 14
+background = "#1e1e2e"   # Catppuccin Mocha (デフォルト)
+foreground = "#cdd6f4"
+cursor     = "#f5e0dc"
+selection_bg = "#585b70"
+status_bar_bg = "#313244"
+```
+
+テーマファイルは `%APPDATA%\yatamux\themes\<name>.toml` に同じ形式で配置する。`Ctrl+P` でテーマランチャーを起動し、↑↓ で選択・Enter で即座に反映できる（フォント変更のみ再起動が必要）。
+
+```
+Ctrl+P  →  テーマランチャー起動
+↑ / ↓   →  テーマ選択
+Enter   →  適用（色のみランタイム切り替え）
+Esc     →  キャンセル
+```

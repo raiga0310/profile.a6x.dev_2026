@@ -33,11 +33,18 @@ https://github.com/raiga0310/cmux-win
 **UI / 操作**
 - ペイン分割（垂直・水平）・フォーカス移動
 - フローティングペイン・コピーモード・スクロールバック（50,000 行）
-- レイアウトランチャー・トースト通知
+- レイアウトランチャー・テーマランチャー（`Ctrl+P`）・トースト通知
+
+**外観設定**
+- `config.toml` の `[appearance]` でフォント・カラーを設定
+- `%APPDATA%\yatamux\themes\<name>.toml` でテーマファイルを管理
+- テーマランチャーでランタイム切り替え（フォント変更のみ再起動が必要）
 
 **データ / 統合**
-- セッション永続化・宣言的レイアウト
-- OSC 52 クリップボード・IPC CLI（list-panes / send-keys / capture-pane / split-pane）
+- セッション永続化・宣言的レイアウト（コマンド付き保存に対応）
+- OSC 52 クリップボード
+- IPC CLI（`list-panes` / `send-keys` / `capture-pane` / `split-pane`）
+- レイアウト管理 CLI（`layout list` / `layout delete` / `layout export`）
 - プラグインフック（ペイン作成・終了時のコマンド実行）
 
 [**3ペイン分割 + トースト通知が表示された起動後の全体スクリーンショットを差し込む予定**]

@@ -173,11 +173,18 @@ PaneStore
   active: PaneId
   pending_clipboard: Option<Vec<u8>>
   pending_toasts: VecDeque<Toast>
-  scroll_offset: usize
+  scroll_offset: usize                    <- B-7: フォーカス変更・リサイズ時にリセット/クランプ
   floating: Option<PaneId>
   floating_visible: bool
+  pre_float_active: Option<PaneId>        <- フローティング解除後に戻るペイン
   launcher: Option<LauncherState>
+  theme_launcher: Option<ThemeLauncherState>  <- Ctrl+P テーマランチャー
   copy_mode: Option<CopyState>
+  save_prompt: Option<String>             <- レイアウト保存名入力中
+  normal_selection: Option<(usize,usize,usize,usize)>  <- マウス選択範囲
+  normal_dragging: bool
+  should_quit: bool                       <- true → 次の WM_TIMER で DestroyWindow
+  pane_commands: HashMap<PaneId, String>  <- C-23: レイアウト適用時のコマンドを記録
 
 LayoutNode (enum, クライアントローカル型)
   +-- Leaf(PaneId)
@@ -194,9 +201,46 @@ LauncherState
   layouts: Vec<String>
   selected: usize
 
+ThemeLauncherState                        <- Ctrl+P テーマランチャー
+  themes: Vec<String>
+  selected: usize
+
 CopyState
   cursor: (usize, usize)
   selection: Option<((usize,usize),(usize,usize))>
+
+ClientMode (enum)                         <- UI モード管理
+  +-- Normal
+  +-- Pane
+  \-- Copy
+
+KeyInput                                  <- WM_KEYDOWN を構造体に正規化
+  vk: u32
+  ctrl: bool
+  shift: bool
+  wparam: WPARAM
+  lparam: LPARAM
+
+KeyConsumed (enum)                        <- Chain of Responsibility の返り値
+  +-- Yes          <- 消費（WM_CHAR 抑制）
+  +-- YesPassChar  <- 消費（WM_CHAR 通過）
+  \-- No           <- 未処理（次ハンドラへ委譲）
+```
+
+### WM_KEYDOWN ハンドラチェーン（A-1）
+
+`WM_KEYDOWN` は Chain of Responsibility パターンで実装されており、新しいモードや
+キーバインドを追加する際は既存ハンドラに干渉せず新しい `handle_*` 関数を挿入できる。
+
+```
+dispatch_wm_keydown(state, hwnd, &KeyInput { vk, ctrl, shift, .. })
+  ├─ handle_save_prompt         (save_prompt.is_some() のときのみ)
+  ├─ handle_layout_launcher     (launcher.is_some() のときのみ)
+  ├─ handle_theme_launcher      (theme_launcher.is_some() のときのみ)
+  ├─ handle_copy_mode           (mode == Copy のときのみ)
+  ├─ handle_pane_mode           (mode == Pane のときのみ)
+  ├─ handle_global_shortcuts    (常時有効: Ctrl+B/F/P 等)
+  └─ handle_vt_passthrough      (VK_ コード → VT シーケンス変換して PTY へ)
 ```
 
 ## 型間の所有・参照関係
