@@ -8,12 +8,11 @@ description: "Workspace / Surface / PaneTree と、クライアント側 LayoutN
 
 サーバー側のセッション階層は今も 3 段だ。
 
-```text
-Workspace
-  └── Surface
-        └── PaneTree
-              ├── Leaf(PaneId)
-              └── Split { direction, ratio, first, second }
+```mermaid
+flowchart TD
+  WS["Workspace"] --> SURFACE["Surface"] --> TREE["PaneTree"]
+  TREE --> LEAF["Leaf(PaneId)"]
+  TREE --> SPLIT["Split { direction, ratio, first, second }"]
 ```
 
 ただし GUI 描画はこの木を直接使わず、
@@ -85,15 +84,16 @@ bridge 側も Win32 側も更新対象を迷いにくい。
 
 ### GUI 起点
 
-```text
-Ctrl+Shift+E / Ctrl+Shift+O
-  → ClientState::request_split()
-  → split_tx.send((active_pane, direction))
-  → bridge が ClientMessage::CreatePane を Server へ
-  → Server が Pane::spawn()
-  → ServerMessage::PaneCreated
-  → bridge が TerminalSink / Grid / LayoutNode を追加
-  → 親ペインに Resize を送り直す
+```mermaid
+flowchart TD
+  INPUT["Ctrl+Shift+E / Ctrl+Shift+O"]
+  INPUT --> REQ["ClientState::request_split()"]
+  REQ --> TX["split_tx.send((active_pane, direction))"]
+  TX --> CREATE["bridge が ClientMessage::CreatePane を Server へ"]
+  CREATE --> SPAWN["Server が Pane::spawn()"]
+  SPAWN --> CREATED["ServerMessage::PaneCreated"]
+  CREATED --> UPDATE["bridge が TerminalSink / Grid / LayoutNode を追加"]
+  UPDATE --> RESIZE["親ペインに Resize を送り直す"]
 ```
 
 bridge は `pending: VecDeque<(PaneId, SplitDirection, TermSize)>` を持ち、
@@ -119,9 +119,10 @@ bridge はそれを見てクライアント側 `LayoutNode` を補正する。
 フローティングペインは `LayoutNode` に含めない。
 `PaneStore.floating` と `PaneStore.floating_visible` で別管理する。
 
-```text
-通常レイアウト: LayoutNode が担当
-フロート表示  : PaneStore::floating_rect(content_rect) が担当
+```mermaid
+flowchart LR
+  NORMAL["通常レイアウト"] --> NORMAL_IMPL["LayoutNode が担当"]
+  FLOAT["フロート表示"] --> FLOAT_IMPL["PaneStore::floating_rect(content_rect) が担当"]
 ```
 
 初回 `Ctrl+F` では通常の `CreatePane` を 1 枚発行し、
@@ -134,10 +135,11 @@ bridge はそれを見てクライアント側 `LayoutNode` を補正する。
 
 `CopyState` は現在 `cursor` と `anchor` の 2 つだけを持つ。
 
-```text
-CopyState
-  cursor: (col, row)
-  anchor: Option<(col, row)>
+```mermaid
+flowchart TD
+  COPY["CopyState"]
+  COPY --> CURSOR["cursor: (col, row)"]
+  COPY --> ANCHOR["anchor: Option&lt;(col, row)&gt;"]
 ```
 
 選択中かどうかは毎回 `is_selected()` で計算する。
@@ -177,10 +179,11 @@ bridge 側の処理:
 
 終了時は `LayoutSnapshot` を `%APPDATA%\yatamux\session.toml` に保存する。
 
-```text
-LayoutSnapshot
-  root: LayoutNodeDef
-  active: PaneId
+```mermaid
+flowchart TD
+  SNAP["LayoutSnapshot"]
+  SNAP --> ROOT["root: LayoutNodeDef"]
+  SNAP --> ACTIVE["active: PaneId"]
 ```
 
 `LayoutNodeDef` は `LayoutNode` のシリアライズ専用ミラー型で、

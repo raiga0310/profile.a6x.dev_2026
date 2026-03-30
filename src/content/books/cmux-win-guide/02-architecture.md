@@ -9,22 +9,26 @@ description: "workspace 化後の起動フロー、チャネル構成、IPC 形�
 エントリポイントは `src/main.rs`。
 `clap` で CLI サブコマンドを解釈し、GUI 起動時は `app::run()` に流れる。
 
-```text
-main()
-  ├── CLI サブコマンドなら src/cli.rs へ
-  └── app::run(layout_name, app_config)
-        ├── bootstrap_runtime()
-        │     ├── Server::new()
-        │     ├── tokio spawn: Server::run()
-        │     ├── tokio spawn: run_ipc_server()
-        │     └── CreateWorkspace / CreateSurface / CreatePane
-        ├── load_initial_layout()
-        │     ├── --layout <name> を適用
-        │     ├── もしくは session.toml を復元
-        │     └── 失敗時は単一ペイン
-        ├── spawn_bridge_fanout()
-        ├── spawn_server_bridge()
-        └── spawn_blocking(run_window)
+```mermaid
+flowchart TD
+  MAIN["main()"]
+  MAIN -->|CLI サブコマンド| CLI["src/cli.rs"]
+  MAIN -->|GUI 起動| APP["app::run(layout_name, app_config)"]
+
+  APP --> BOOT["bootstrap_runtime()"]
+  BOOT --> BOOT1["Server::new()"]
+  BOOT --> BOOT2["tokio spawn<br>Server::run()"]
+  BOOT --> BOOT3["tokio spawn<br>run_ipc_server()"]
+  BOOT --> BOOT4["CreateWorkspace / CreateSurface / CreatePane"]
+
+  APP --> LAYOUT["load_initial_layout()"]
+  LAYOUT --> LAYOUT1["--layout &lt;name&gt; を適用"]
+  LAYOUT --> LAYOUT2["session.toml を復元"]
+  LAYOUT --> LAYOUT3["失敗時は単一ペイン"]
+
+  APP --> FANOUT["spawn_bridge_fanout()"]
+  APP --> BRIDGE["spawn_server_bridge()"]
+  APP --> WINDOW["spawn_blocking(run_window)"]
 ```
 
 `bootstrap_runtime()` が最初の Workspace / Surface / Pane を作り、
@@ -87,12 +91,13 @@ IPC と GUI の両方へ同じ PTY 出力を配る fan-out でコピーを避け
 内部イベント `PaneEvent` は文字列ベースの制御メッセージではなく、
 型付きイベントとして `pane.rs` と `session` の間だけで流している。
 
-```text
-PaneEvent
-  ├── Notification(String)
-  ├── Bell
-  ├── ProcessExited
-  └── CommandFinished(Option<i32>)
+```mermaid
+flowchart TD
+  EVENT["PaneEvent"]
+  EVENT --> NOTIF["Notification(String)"]
+  EVENT --> BELL["Bell"]
+  EVENT --> EXIT["ProcessExited"]
+  EVENT --> DONE["CommandFinished(Option&lt;i32&gt;)"]
 ```
 
 ここから `ServerMessage::Notification` や `ServerMessage::CommandFinished` に変換する。
