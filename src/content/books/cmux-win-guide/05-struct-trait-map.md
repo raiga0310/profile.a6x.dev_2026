@@ -351,16 +351,11 @@ BridgeEvent
 
 ## 所有関係の最重要ポイント
 
-```text
-Server
-  └── Pane
-        └── Arc<tokio::Mutex<Grid>>
-
-PaneStore
-  └── grids: HashMap<PaneId, Arc<Mutex<Grid>>>
-
-ClientState
-  └── Arc<Mutex<PaneStore>>
+```mermaid
+flowchart TD
+  SERVER["Server"] --> PANE["Pane"] --> SERVER_GRID["Arc&lt;tokio::Mutex&lt;Grid&gt;&gt;"]
+  STORE["PaneStore"] --> CLIENT_GRIDS["grids: HashMap&lt;PaneId, Arc&lt;Mutex&lt;Grid&gt;&gt;&gt;"]
+  CLIENT["ClientState"] --> STORE_REF["Arc&lt;Mutex&lt;PaneStore&gt;&gt;"]
 ```
 
 server の `Grid` と client の `Grid` は別インスタンスで、

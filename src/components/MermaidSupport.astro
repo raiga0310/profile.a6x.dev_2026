@@ -1,0 +1,78 @@
+<script type="module" is:inline>
+  const MERMAID_SELECTOR = '.mermaid';
+  let mermaidLoader;
+
+  function getMermaidTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+  }
+
+  function getMermaid() {
+    if (!mermaidLoader) {
+      mermaidLoader = import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
+        .then((mod) => mod.default);
+    }
+    return mermaidLoader;
+  }
+
+  async function renderMermaid() {
+    const nodes = Array.from(document.querySelectorAll(MERMAID_SELECTOR));
+    if (!nodes.length) {
+      return;
+    }
+
+    for (const node of nodes) {
+      if (!node.dataset.mermaidSource) {
+        node.dataset.mermaidSource = (node.textContent ?? '').trim();
+      }
+      node.removeAttribute('data-processed');
+      node.textContent = node.dataset.mermaidSource ?? '';
+    }
+
+    const mermaid = await getMermaid();
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: getMermaidTheme(),
+    });
+    await mermaid.run({ nodes });
+  }
+
+  function scheduleRender() {
+    void renderMermaid().catch((error) => {
+      console.error('Failed to render Mermaid diagrams.', error);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleRender, { once: true });
+  } else {
+    scheduleRender();
+  }
+
+  new MutationObserver((mutations) => {
+    if (mutations.some((mutation) => mutation.attributeName === 'data-theme')) {
+      scheduleRender();
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+</script>
+
+<style is:global>
+  .mermaid {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow-x: auto;
+  }
+
+  .mermaid svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+</style>

@@ -6,21 +6,22 @@ description: "ConPTY のバイト列が Grid を経由して GDI に描かれる
 
 ## 全体の流れ
 
-```text
-ConPTY output
-  → Pane の PTY 読み取りタスク
-  → vte::Parser
-  → VtProcessor
-  → Grid 更新
-  → ServerMessage::Output
-  → app bridge
-  → TerminalSink::feed()
-  → PaneStore 上の Grid 反映
-  → WM_TIMER で dirty 行を検知
-  → InvalidateRect
-  → WM_PAINT
-  → GDI バックバッファ描画
-  → BitBlt
+```mermaid
+flowchart TD
+  PTY["ConPTY output"]
+  PTY --> READ["Pane の PTY 読み取りタスク"]
+  READ --> PARSER["vte::Parser"]
+  PARSER --> PROC["VtProcessor"]
+  PROC --> GRID["Grid 更新"]
+  GRID --> OUTPUT["ServerMessage::Output"]
+  OUTPUT --> BRIDGE["app bridge"]
+  BRIDGE --> SINK["TerminalSink::feed()"]
+  SINK --> STORE["PaneStore 上の Grid 反映"]
+  STORE --> TIMER["WM_TIMER で dirty 行を検知"]
+  TIMER --> INVALIDATE["InvalidateRect"]
+  INVALIDATE --> PAINT["WM_PAINT"]
+  PAINT --> BACKBUFFER["GDI バックバッファ描画"]
+  BACKBUFFER --> BLT["BitBlt"]
 ```
 
 サーバー側でも `Grid` は更新されているが、クライアントは描画専用に
@@ -42,16 +43,17 @@ ConPTY output
 
 を 1 つにまとめた仮想スクリーンバッファだ。
 
-```text
-Grid
-  cols / rows
-  cells: Vec<Vec<Cell>>
-  cursor: CursorPos
-  dirty: Vec<bool>
-  saved_main: Option<MainScreenSnapshot>
-  scroll_top / scroll_bottom
-  scrollback: ScrollbackBuffer
-  width_config: CjkWidthConfig
+```mermaid
+flowchart TD
+  GRID["Grid"]
+  GRID --> G1["cols / rows"]
+  GRID --> G2["cells: Vec&lt;Vec&lt;Cell&gt;&gt;"]
+  GRID --> G3["cursor: CursorPos"]
+  GRID --> G4["dirty: Vec&lt;bool&gt;"]
+  GRID --> G5["saved_main: Option&lt;MainScreenSnapshot&gt;"]
+  GRID --> G6["scroll_top / scroll_bottom"]
+  GRID --> G7["scrollback: ScrollbackBuffer"]
+  GRID --> G8["width_config: CjkWidthConfig"]
 ```
 
 ## セル表現
@@ -59,14 +61,15 @@ Grid
 `Cell` は内容とスタイルを持つ。内容は `CellContent` で表現され、
 全角文字の右側を `Continuation` で埋める方針は現行実装でも同じだ。
 
-```text
-Cell
-  content:
-    Grapheme { text, width }
-    Continuation
-    Empty
-  style:
-    fg, bg, bold, italic, underline, reverse, dim ...
+```mermaid
+flowchart TD
+  CELL["Cell"]
+  CELL --> CONTENT["content"]
+  CELL --> STYLE["style"]
+  CONTENT --> GRAPH["Grapheme { text, width }"]
+  CONTENT --> CONT["Continuation"]
+  CONTENT --> EMPTY["Empty"]
+  STYLE --> STYLE_FIELDS["fg / bg / bold / italic / underline / reverse / dim ..."]
 ```
 
 この表現により、
@@ -157,17 +160,17 @@ box-drawing 文字は `ExtTextOutW` に丸投げせず、
 
 起動時はインストール済みフォントから候補順に選ぶ。
 
-```text
-HackGen Console NF
-→ HackGen Console
-→ HackGen35 Console NF
-→ HackGen35 Console
-→ HackGen NF
-→ HackGen
-→ Cascadia Mono
-→ Cascadia Code
-→ Consolas
-→ MS Gothic
+```mermaid
+flowchart TD
+  F1["HackGen Console NF"] --> F2["HackGen Console"]
+  F2 --> F3["HackGen35 Console NF"]
+  F3 --> F4["HackGen35 Console"]
+  F4 --> F5["HackGen NF"]
+  F5 --> F6["HackGen"]
+  F6 --> F7["Cascadia Mono"]
+  F7 --> F8["Cascadia Code"]
+  F8 --> F9["Consolas"]
+  F9 --> F10["MS Gothic"]
 ```
 
 日本語表示、Nerd Font 系グリフ、Windows 標準環境のフォールバックの順で

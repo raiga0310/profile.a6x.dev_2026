@@ -58,15 +58,16 @@ workspace 構成・起動フロー・描画・ペイン管理・IPC 連携を順
 
 ## この記事で扱う構成
 
-```text
-yatamux (bin)
-├── src/                     起動・CLI・設定・レイアウト復元
-└── crates/
-    ├── client/             Win32 ウィンドウ、GDI 描画、IME、レイアウト UI
-    ├── server/             PTY ライフサイクル、セッション階層、IPC サーバー
-    ├── terminal/           VT パーサ、Grid、文字幅計算、ConPTY ラッパー
-    ├── protocol/           ClientMessage / ServerMessage / 共通型
-    └── renderer/           将来拡張を見据えたレンダラー用 crate
+```mermaid
+flowchart TD
+  Y["yatamux (bin)"]
+  Y --> SRC["src/<br>起動・CLI・設定・レイアウト復元"]
+  Y --> CRATES["crates/"]
+  CRATES --> CLIENT["client/<br>Win32 ウィンドウ・GDI 描画・IME・レイアウト UI"]
+  CRATES --> SERVER["server/<br>PTY ライフサイクル・セッション階層・IPC サーバー"]
+  CRATES --> TERMINAL["terminal/<br>VT パーサ・Grid・文字幅計算・ConPTY ラッパー"]
+  CRATES --> PROTOCOL["protocol/<br>ClientMessage / ServerMessage / 共通型"]
+  CRATES --> RENDERER["renderer/<br>将来拡張を見据えたレンダラー用 crate"]
 ```
 
 ## 現時点のロードマップ
