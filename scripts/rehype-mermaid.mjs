@@ -9,6 +9,11 @@ function hasMermaidClass(node) {
   return false;
 }
 
+function isMermaidPre(node) {
+  const language = node?.properties?.dataLanguage ?? node?.properties?.['data-language'];
+  return language === 'mermaid';
+}
+
 function textContent(node) {
   if (!node) {
     return '';
@@ -22,33 +27,38 @@ function textContent(node) {
   return node.children.map(textContent).join('');
 }
 
+function createMermaidNode(source) {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: {
+      className: ['mermaid'],
+    },
+    children: [
+      {
+        type: 'text',
+        value: source.trim(),
+      },
+    ],
+  };
+}
+
 function transform(node) {
   if (!Array.isArray(node.children)) {
     return;
   }
 
   node.children = node.children.map((child) => {
-    if (
-      child?.type === 'element' &&
-      child.tagName === 'pre' &&
-      Array.isArray(child.children) &&
-      child.children.length === 1
-    ) {
-      const code = child.children[0];
-      if (code?.type === 'element' && code.tagName === 'code' && hasMermaidClass(code)) {
-        return {
-          type: 'element',
-          tagName: 'div',
-          properties: {
-            className: ['mermaid'],
-          },
-          children: [
-            {
-              type: 'text',
-              value: textContent(code).trim(),
-            },
-          ],
-        };
+    if (child?.type === 'element' && child.tagName === 'pre') {
+      if (isMermaidPre(child)) {
+        return createMermaidNode(textContent(child));
+      }
+
+      if (Array.isArray(child.children) && child.children.length === 1) {
+        const code = child.children[0];
+        if (code?.type === 'element' && code.tagName === 'code' && hasMermaidClass(code)) {
+          return createMermaidNode(textContent(code));
+        }
       }
     }
 

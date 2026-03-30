@@ -1,5 +1,5 @@
 <script type="module" is:inline>
-  const MERMAID_SELECTOR = '.mermaid';
+  const MERMAID_SELECTOR = '.mermaid, pre[data-language="mermaid"]';
   let mermaidLoader;
 
   function getMermaidTheme() {
@@ -14,8 +14,30 @@
     return mermaidLoader;
   }
 
+  function normalizeMermaidNode(node) {
+    if (!(node instanceof HTMLElement)) {
+      return null;
+    }
+
+    if (node.matches('.mermaid')) {
+      return node;
+    }
+
+    if (node.matches('pre[data-language="mermaid"]')) {
+      const replacement = document.createElement('div');
+      replacement.className = 'mermaid';
+      replacement.textContent = (node.textContent ?? '').trim();
+      node.replaceWith(replacement);
+      return replacement;
+    }
+
+    return null;
+  }
+
   async function renderMermaid() {
-    const nodes = Array.from(document.querySelectorAll(MERMAID_SELECTOR));
+    const nodes = Array.from(document.querySelectorAll(MERMAID_SELECTOR))
+      .map(normalizeMermaidNode)
+      .filter((node) => node instanceof HTMLElement);
     if (!nodes.length) {
       return;
     }
