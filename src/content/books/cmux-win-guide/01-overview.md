@@ -1,67 +1,82 @@
 ---
 title: "概要と設計思想"
 order: 1
-description: "yatamux が解決しようとした課題と、設計上の選択について。"
+description: "yatamux が解決したい課題と、現行実装で採っている設計上の選択。"
 ---
 
 ## なぜ作ったか
 
-Windows で tmux を使いたい。ただそれだけの動機で始まった。
+Windows でも tmux 的なペイン指向の開発環境を、WSL 前提ではなくネイティブに使いたい。
+その要求に対して yatamux が重視したのは、単に分割できることではなく
+**CJK と IME が崩れないこと**だった。
 
-WSL2 経由で tmux を動かす方法はあるが、ネイティブ Windows プロセス（`cmd.exe`、`pwsh`）を
-同一のターミナルで並べたいという需要があった。また、Claude Code などの AI エージェントを
-複数ペインで並列実行する「オーケストレーション用途」も見据えていた。
+既存のモダンなターミナルを Windows で使うと、次の問題が起こりやすい。
 
-ただし「動けばいい」では解決しない問題が実際に存在した。macOS / Linux 向けに開発されたモダンな
-ターミナルアプリを Windows で使うと、以下の問題が顕在化する。
+- **CJK 幅計算のずれ**: ConPTY やアプリ側の想定と表示幅が食い違う
+- **IME の扱いの弱さ**: 変換中文字列の位置と描画が崩れる
+- **半角カナ濁点や VS-16 を含む書記素**: 幅 0 / 1 / 2 の判定が難しい
+- **罫線文字のフォント依存**: neovim などのボーダーが環境差で崩れる
 
-- **CJK 文字幅の誤計算**: 漢字・かな・ハングルが 1 セル幅として扱われカーソルがずれる
-- **IME 未対応・不完全対応**: プリエディット文字列（変換中の文字）の表示が崩れる
-- **半角カタカナ濁点（U+FF9E / U+FF9F）の誤認識**: 結合マークと見なされ幅計算が狂う
-- **罫線文字のフォント依存**: neovim 等のボックスボーダーがフォントによって描画崩れを起こす
+yatamux はここを回避するために、ConPTY を PTY として使いつつ、
+表示と入力は Win32 ネイティブに握る構成を採っている。
 
-これらを Windows ネイティブの実装（ConPTY / Win32 GDI / IMM32）で根本解決するのが yatamux の出発点だ。
+## いまの設計原則
 
-## シングルプロセス構成
+### 1. サーバーと GUI を同一プロセスに置く
 
-yatamux は **シングルプロセス・インプロセス** 構成を採用している。
+内部通信は `tokio::sync::mpsc` で完結させ、GUI と PTY 管理の間に
+プロセス境界を持ち込まない。外部 CLI 連携だけを名前付きパイプ IPC に切り出す。
 
-```
-main process
-+-- tokio runtime
-|   +-- Server::run()        <- ペイン管理・PTY I/O
-|   +-- IPC server           <- 外部 CLI 受け付け
-|   \-- app.rs のルーターループ
-\-- spawn_blocking
-    \-- Win32 メッセージループ  <- GUI
-```
+この構成の利点は、UI 操作時の待ち時間が少なく、実装上の責務分離も維持しやすいことだ。
 
-外部プロセスを立ち上げず、tokio の `mpsc` チャネルで Server と GUI を直結するシンプルな構成だ。
-外部 CLI（`yatamux split-pane` 等）からは Named Pipe IPC で接続できる。
+### 2. Grid を中心に据える
 
-## クレート分割
+生の PTY 出力をそのまま描かず、必ず `terminal` crate の `Grid` に反映してから描画する。
+これにより次の機能が一つのデータ構造に集約される。
 
-| クレート | 役割 |
-|---------|------|
-| `yatamux-protocol` | メッセージ型定義のみ |
-| `yatamux-terminal` | VT パーサー・グリッド・PTY セッション・CJK 幅計算 |
-| `yatamux-server` | ペイン/セッション管理 |
-| `yatamux-client` | Win32 ウィンドウ・GDI レンダリング・IME |
-| `yatamux-renderer` | デバッグ用テキストレンダラー（将来的に wgpu 移行予定）|
+- CJK 幅計算
+- スクロールバック
+- オルタネートスクリーン
+- コピーモード / 通常選択の文字列抽出
+- `capture-pane` の出力生成
 
-依存の方向は一方向：`yatamux-client` → `yatamux-server` → `yatamux-terminal` → `yatamux-protocol`。
+### 3. UI 状態は `PaneStore` に集約する
+
+レイアウトツリー、アクティブペイン、フローティング状態、ランチャー状態、
+保存プロンプト、トースト通知キューなどを `PaneStore` にまとめ、
+Win32 スレッドと tokio タスクの橋渡し点を明確にしている。
+
+### 4. 保存形式は人間が読める TOML を選ぶ
+
+セッション復元も宣言的レイアウトも TOML にしている。
+JSON より冗長さはあるが、壊れたときに手で直しやすい。
+
+## workspace 構成
+
+現在のリポジトリは単一 crate ではなく Cargo workspace になっている。
+
+| crate | 役割 |
+|------|------|
+| `yatamux-protocol` | 共有 ID 型・メッセージ型・`PaneCapture` |
+| `yatamux-terminal` | VT パーサ、Grid、文字幅計算、ConPTY ラッパー |
+| `yatamux-server` | Workspace / Surface / Pane の管理、IPC サーバー |
+| `yatamux-client` | Win32 ウィンドウ、GDI 描画、IME、レイアウト UI |
+| `yatamux-renderer` | まだ薄いが、将来の描画分離先として確保 |
+| `yatamux` | 起動、CLI、設定、ブートストラップ |
 
 ## 現時点の制限
 
-- **Windows 専用**: ConPTY API の制約により macOS / Linux では動作しない
-- **マルチタブ UI 未実装**: Surface（タブ）を複数持てる設計だが、タブ切り替え UI は未実装
-- **GPU レンダリング未対応**: 描画は GDI のみ（`yatamux-renderer` クレートへの wgpu 移行は将来のロードマップ）
-- **スクロールバックは全画面のみ**: サブリージョン（ペイン内だけ）のスクロールは未対応
+- **Windows 専用**: ConPTY と Win32 API に依存する
+- **Surface のデータモデルはあるがタブ UI は未実装**
+- **描画は GDI ベース**: GPU レンダリングには移行していない
+- **テーマのランタイム切り替えは色中心**: フォント変更は再起動前提
+- **保存レイアウトの再構成は線形な `[[panes]]` 形式**: 複雑な木構造は保存時に表現が簡略化される
 
 ## 技術選定
 
-- **tokio 1.50**: 非同期 I/O。PTY 読み書き・IPC・メッセージルーターを並行実行する
-- **portable-pty 0.8**: ConPTY ラッパー。Windows の仮想端末を抽象化する
-- **vte 0.15**: VT シーケンスパーサー。ANSI エスケープシーケンスを解釈する
-- **windows 0.62**: Win32 API バインディング。GDI で描画し、IME・クリップボードを扱う
-- **unicode-width / unicode-segmentation**: CJK 文字幅・書記素クラスタの計算に使用する
+- **`tokio`**: サーバーループ、PTY 入出力、IPC、ブリッジ処理を並行実行する
+- **`portable-pty`**: ConPTY の生成と入出力を扱う
+- **`vte`**: ANSI / VT シーケンスのステートマシン
+- **`windows`**: GDI、IME、クリップボード、通知、ウィンドウ操作
+- **`unicode-width` / `unicode-segmentation` / `unicode-normalization`**:
+  CJK 幅計算と書記素クラスタ処理に使う

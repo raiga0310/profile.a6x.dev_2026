@@ -1,263 +1,380 @@
 ---
 title: "型・トレイト関係図"
 order: 5
-description: "全クレートにわたる struct / enum / trait の依存関係を一枚で俯瞰する。"
+description: "workspace 全体の主要型を、現在のモジュール分割に合わせて俯瞰する。"
 ---
 
-この章を書いていて、普段何気なく使っている型名が、実際に図に起こすと意外な依存関係を持っていることに改めて気づいた。特に `Grid` がサーバーとクライアントの唯一の共有状態であることは、設計の根幹なのに言語化するまで意識できていなかった。
+この章は現行コードの索引用リファレンスとして使う想定で、
+「頻出する型がどの crate に属し、何を所有しているか」を中心に整理している。
 
-## この章の読み方
+## 先に押さえる 3 点
 
-この章は開発中の型検索・依存関係確認のためのリファレンス。初読の場合は章末の**型間の所有・参照関係**と**メッセージフロー要約**を先に確認してから各クレートの定義に戻ると全体像が掴みやすい。
+1. 通信の境界は `protocol` crate の `ClientMessage` / `ServerMessage`
+2. 表示の境界は `terminal` crate の `Grid`
+3. UI 状態の境界は `client` crate の `PaneStore`
 
-## クレート別 型一覧
+この 3 つだけ先に頭に入れておくと、他の型の位置づけが追いやすい。
 
-### yatamux-protocol
+## `yatamux-protocol`
 
-プロジェクト全体の共通語彙。他のクレートはすべてここに依存する。ロジックを持たない。設計中、メッセージ型の数が増えるにつれて「これは protocol に置くべきか server にローカルで置くべきか」の境界線を何度も引き直した。最終的に「wire を流れる型だけ protocol に入れる」という基準に落ち着いた。
+ワイヤを流れる型だけを置く crate。
 
-```
+```text
 WorkspaceId(u32)
 SurfaceId(u32)
 PaneId(u32)
-TermSize { rows: u16, cols: u16 }
+
+TermSize { cols, rows }
 SplitDirection { Horizontal | Vertical }
-PaneInfo { id, title, size, surface }
 
-ClientMessage (enum, serde)
-  +-- CreateWorkspace { name }
-  +-- CreateSurface { workspace }
-  +-- CreatePane { surface, split_from, direction, size, working_dir }
-  +-- Input { pane, data }
-  +-- Resize { pane, size }
-  +-- ClosePane { pane }
-  +-- RequestScreen { pane }
-  +-- ListPanes
-  \-- CapturePane { pane, lines }
+PaneInfo {
+  id,
+  surface,
+  title,
+  cols,
+  rows,
+}
 
-ServerMessage (enum, serde)
-  +-- WorkspaceCreated { id, name }
-  +-- SurfaceCreated { id, workspace }
-  +-- PaneCreated { id, surface, split_from?, direction? }
-  +-- Output { pane, data: Arc<[u8]> }   <- Arc でコピーレスファンアウト
-  +-- TitleChanged { pane, title }
-  +-- Notification { pane, body }
-  +-- ClipboardWrite { pane, data }
-  +-- PaneClosed { pane }
-  +-- Error { message }
-  +-- PanesListed { panes }
-  \-- PaneContent { pane, content }
+CursorInfo {
+  col,
+  row,
+  visible,
+}
+
+PaneCapture {
+  title,
+  cols,
+  rows,
+  lines_requested,
+  scrollback_len,
+  cursor,
+  visible_text,
+  scrollback_tail,
+}
 ```
 
-### yatamux-terminal
+### `ClientMessage`
 
-Win32 依存なし。PTY・VT パーサ・グリッドをカプセル化する。詳細は [03章 レンダリングパイプライン](./03-rendering)。
-
+```text
+CreateWorkspace { name }
+CreateSurface { workspace }
+CreatePane { surface, split_from, direction, size, working_dir }
+Input { pane, data }
+Resize { pane, size }
+ClosePane { pane }
+RequestScreen { pane }
+Detach
+ListPanes
+CapturePane { pane, lines, plain_text }
 ```
-PtyHandle (trait)                       <- 抽象化レイヤ
-  fn write(&mut self, &[u8]) -> Result
-  fn resize(&self, TermSize) -> Result
-  fn take_killer() -> Option<ProcessKiller>
-  fn take_exit_waiter() -> Option<ExitWaiter>
 
-PtySession                              <- PtyHandle の本番実装（ConPTY）
-  writer: Box<dyn Write + Send>
-  master: Box<dyn MasterPty + Send>
-  child: Option<Box<dyn Child + Send + Sync>>
+### `ServerMessage`
 
-ProcessKiller(Box<dyn FnOnce + Send + Sync>)
-  fn kill(self)
+```text
+WorkspaceCreated { id, name }
+SurfaceCreated { id, workspace }
+PaneCreated { id, surface, split_from?, direction? }
+Output { pane, data: Arc<[u8]> }
+TitleChanged { pane, title }
+Notification { pane, body }
+ClipboardWrite { pane, data }
+PaneClosed { pane }
+CommandFinished { pane, exit_code? }
+Error { message }
+PanesListed { panes }
+PaneContent { pane, content, capture? }
+```
 
-ExitWaiter(Box<dyn FnOnce + Send>)
-  fn wait(self)
+## `yatamux-terminal`
 
-CjkWidthConfig                          <- East Asian Ambiguous 幅設定
+端末エミュレーションのコア。
+
+```text
+CjkWidthConfig
+
+TerminalSink
+  grid: Arc<Mutex<Grid>>
+  parser: vte::Parser
+  fn feed(&mut self, data) -> Option<Vec<u8>>
 
 Grid
-  cells: Vec<Vec<Cell>>
-  dirty: Vec<bool>                      <- 行単位の再描画フラグ
-  scrollback: ScrollbackBuffer
+  cols / rows
+  cells
   cursor: CursorPos
-  flags: GridFlags                      <- DECAWM / LCF / カーソル表示 等
+  dirty
+  saved_main
+  scroll_top / scroll_bottom
+  scrollback
+  width_config
 
-ScrollbackBuffer
-  rows: VecDeque<Vec<Cell>>
-  max_rows: usize                       <- 上限 50,000 行
+CursorPos { col, row }
 
 Cell
   content: CellContent
   style: CellStyle
 
-CellContent (enum)
-  +-- Grapheme { ch: String, width: u8 }
-  +-- Continuation                      <- 全角右側ダミー
-  \-- Empty
+CellContent
+  Grapheme { text, width }
+  Continuation
+  Empty
 
-CellStyle { fg, bg, bold, italic, underline, ... }
-Color { Rgb(r,g,b) | Indexed(u8) | Default }
+CellStyle
+  fg, bg, bold, italic, underline, reverse, dim ...
+```
 
+### PTY 関連
+
+```text
+PtySession
+  fn spawn(size, shell, output_tx, working_dir)
+  fn write(&mut self, data)
+  fn resize(&mut self, size)
+  fn take_child()
+  fn clone_child_killer()
+```
+
+### VT 関連
+
+```text
 VtProcessor<'a>
   grid: &'a mut Grid
-  current_style: CellStyle
-  title: Option<String>
-  notification: Option<String>
-  clipboard_data: Option<Vec<u8>>
-  command_finished: bool
-  bell: bool
-  -> impl vte::Perform              <- vte クレートのコールバック実装
+  current_style
+  title
+  notification
+  clipboard_data
+  command_finished
+  bell
+  → impl vte::Perform
 ```
 
-### yatamux-server
+ここで通知やクリップボードまで抜いているのが、現在の terminal crate の特徴だ。
 
-セッション階層とペインライフサイクルを管理する。詳細は [04章 ペイン管理](./04-pane-management)。
+## `yatamux-server`
 
+セッション階層と PTY ライフサイクルを管理する。
+
+```text
+Server
+  workspaces: HashMap<WorkspaceId, Workspace>
+  surfaces: HashMap<SurfaceId, Surface>
+  panes: HashMap<PaneId, Pane>
+  next_*_id
+  width_config: CjkWidthConfig
+  client_tx: Sender<ServerMessage>
+  pane_output_rx / tx
+  pane_event_rx / tx
 ```
+
+### セッションモデル
+
+```text
 Workspace
-  id: WorkspaceId
-  name: String
-  surfaces: Vec<Surface>
+  id
+  name: Arc<str>
+  surfaces: Vec<SurfaceId>
+  active_surface
 
 Surface
-  id: SurfaceId
-  workspace: WorkspaceId
-  tree: PaneTree
+  id
+  workspace
+  pane_tree: Option<PaneTree>
+  active_pane
 
-PaneTree (enum, サーバーローカル型)
-  +-- Leaf(PaneId)
-  \-- Node { direction, ratio: f32, left: Box<PaneTree>, right: Box<PaneTree> }
+PaneTree
+  Leaf(PaneId)
+  Split { direction, ratio, first, second }
+```
 
-Server
-  workspaces: Vec<Workspace>
-  panes: HashMap<PaneId, Pane>
-  rx: mpsc::Receiver<ClientMessage>
-  tx: mpsc::Sender<ServerMessage>
+### ペイン
 
+```text
 Pane
-  id: PaneId
-  grid: Arc<tokio::Mutex<Grid>>           <- VtProcessor が更新
-  output_tx: mpsc::Sender<(PaneId, Arc<[u8]>)>
-  cmd_tx: mpsc::Sender<PtyCmd>            <- Input / Resize コマンド
-  title: Arc<std::Mutex<String>>          <- std:: を使う（T-01 参照）
-  size: Arc<std::Mutex<TermSize>>
-  child_killer: Option<ProcessKiller>     <- Drop 時に kill()
+  id
+  grid: Arc<tokio::sync::Mutex<Grid>>
+  cmd_tx: Sender<PtyCmd>
+  title: Arc<std::sync::Mutex<Arc<str>>>
+  size: Arc<std::sync::Mutex<TermSize>>
+  child_killer
 
-PtyCmd (enum, クレート内部)
-  +-- Input(Vec<u8>)
-  \-- Resize(TermSize)
+PtyCmd
+  Input(Vec<u8>)
+  Resize(TermSize)
+
+PaneEvent
+  Notification(String)
+  Bell
+  ProcessExited
+  CommandFinished(Option<i32>)
 ```
 
-### yatamux-renderer
+`Pane` は server 内部型であり、protocol crate には出てこない。
 
-デバッグ用のテキストレンダラー。将来的に wgpu による GPU レンダリングへの移行を見据えたクレートとして分離している。現時点ではデバッグ描画のみ実装。分離の意図は [01章 クレート分割](./01-overview#クレート分割)。
+## `yatamux-client`
 
+UI と描画を担当する crate。
+
+### レイアウト関連
+
+```text
+LayoutNode
+  Leaf(PaneId)
+  Split { direction, ratio, first, second }
+
+PaneRect { x, y, w, h }
+Direction { Left, Right, Up, Down }
+
+LayoutPreview
+  node: LayoutNode
+  commands: Vec<Option<String>>
+
+LauncherState
+  entries: Vec<(String, Option<LayoutPreview>)>
+  selected
+
+ThemeLauncherState
+  entries: Vec<String>
+  selected
 ```
-TextRenderer
-  fn render_text(&self, text: &str, x: i32, y: i32)
-```
 
-### yatamux-client
+### `PaneStore`
 
-Win32 ウィンドウ・レンダリング・UI 状態を管理する。詳細は [03章 GDI 描画](./03-rendering#gdi-描画) / [04章 ペイン管理](./04-pane-management)。
-
-```
-ClientState                              <- Win32 スレッドと tokio が共有
-  store: Arc<Mutex<PaneStore>>
-  msg_tx: mpsc::Sender<ClientMessage>
-  split_tx: mpsc::Sender<(PaneId, SplitDirection)>
-  float_tx: mpsc::Sender<()>
-  active_toasts: Mutex<Vec<Toast>>
-
+```text
 PaneStore
   grids: HashMap<PaneId, Arc<Mutex<Grid>>>
-  layout: LayoutNode                      <- クライアント側レイアウトツリー
+  layout: LayoutNode
   active: PaneId
   pending_clipboard: Option<Vec<u8>>
   pending_toasts: VecDeque<Toast>
   scroll_offset: usize
   floating: Option<PaneId>
   floating_visible: bool
+  pre_float_active: Option<PaneId>
+  should_quit: bool
   launcher: Option<LauncherState>
   copy_mode: Option<CopyState>
+  normal_selection: Option<(usize, usize, usize, usize)>
+  save_prompt: Option<String>
+  theme_launcher: Option<ThemeLauncherState>
+  pane_commands: HashMap<PaneId, String>
+```
 
-LayoutNode (enum, クライアントローカル型)
-  +-- Leaf(PaneId)
-  \-- Split { direction, ratio: f32, first: Box<LayoutNode>, second: Box<LayoutNode> }
+### UI 補助型
 
-PaneRect { x, y, width, height: i32 }   <- compute_rects() の出力
-
-Toast
-  body: String
-  created_at: Instant
-  phase: ToastPhase                      <- SlideIn / Visible / FadeOut
-
-LauncherState
-  layouts: Vec<String>
-  selected: usize
-
+```text
 CopyState
   cursor: (usize, usize)
-  selection: Option<((usize,usize),(usize,usize))>
+  anchor: Option<(usize, usize)>
+
+Toast
+  pane_id
+  message
+  elapsed_ms
 ```
 
-## 型間の所有・参照関係
+### セッション永続化
 
+```text
+LayoutNodeDef
+  Leaf { id }
+  Split { direction, ratio, first, second }
+
+LayoutSnapshot
+  root: LayoutNodeDef
+  active: PaneId
 ```
+
+`LayoutNode` は描画時の実体、`LayoutNodeDef` は保存時の鏡像型という関係だ。
+
+### Win32 側の実行状態
+
+```text
+ClientState
+  panes: Arc<Mutex<PaneStore>>
+  ime: ImeHandler
+  msg_tx
+  split_tx
+  float_tx
+  layout_tx
+  active_toasts
+  content_rect
+  app_focused
+  native_notif_queue
+  mode: Cell<ClientMode>
+  theme: Cell<WinTheme>
+
+ClientMode
+  Normal
+  Pane
+  Copy
+```
+
+## ルート crate (`src/`)
+
+workspace を束ねる型はここにある。
+
+```text
+AppConfig
+  hooks: HooksConfig
+  appearance: AppearanceConfig
+
+HooksConfig
+  on_pane_created
+  on_pane_closed
+
+AppearanceConfig
+  font_family
+  font_size
+  background
+  foreground
+  cursor
+  selection_bg
+  status_bar_bg
+```
+
+### 起動と bridge
+
+```text
+BootstrapHandles
+  client_tx
+  server_rx
+  ipc_out_tx
+  surf_id
+  pane_id
+
+BridgeEvent
+  PaneOutput
+  PaneCreated
+  PaneClosed
+  UserNotification
+  CommandFinished
+```
+
+## 所有関係の最重要ポイント
+
+```text
 Server
-  \-- HashMap<PaneId, Pane>
-        \-- Arc<tokio::Mutex<Grid>>  ---------------------+
-                                                          | Arc::clone
-ClientState                                               |
-  \-- Arc<Mutex<PaneStore>>                               |
-        \-- HashMap<PaneId, Arc<tokio::Mutex<Grid>>> -----+
-            (同じ Grid インスタンスをサーバーとクライアントが共有)
+  └── Pane
+        └── Arc<tokio::Mutex<Grid>>
+
+PaneStore
+  └── grids: HashMap<PaneId, Arc<Mutex<Grid>>>
+
+ClientState
+  └── Arc<Mutex<PaneStore>>
 ```
 
-`Grid` は `Arc<tokio::Mutex<_>>` でサーバーとクライアントが共有する唯一の共有状態。
-それ以外の通信はすべて `mpsc` チャネル経由で行う。
+server の `Grid` と client の `Grid` は別インスタンスで、
+client 側は `TerminalSink` が PTY 生データを再適用して画面を保っている。
+この点は monolith 的に 1 つの Grid を共有していた時期の説明と混同しやすいので注意したい。
 
-## PtyHandle トレイトの差し込み構造
+## 型の追い方
 
-```
-                        +--------------+
-                        |  PtyHandle   | (trait)
-                        |  write()     |
-                        |  resize()    |
-                        |  take_killer |
-                        |  take_exit_w |
-                        +------+-------+
-               (本番)          |           (テスト)
-         +-------------+       |       +------------------+
-         | PtySession  |       |       | MockPty          |
-         | (ConPTY)    |-------+       | (mpsc channel)   |
-         +-------------+               +------------------+
-                v                               v
-         Pane::spawn()                  Pane::spawn_with_handle()
-```
+実装を読むときは、次の順序が分かりやすい。
 
-`Pane::spawn_with_handle<P: PtyHandle>()` を使うことで、
-テストは ConPTY を起動せずにサーバー層を完全に検証できる。
+1. `protocol` のメッセージ型を確認する
+2. `server::handle_client_message()` で入口を見る
+3. `pane.rs` と `terminal` crate で PTY と Grid の更新を見る
+4. `app/bridge.rs` で GUI 側への反映を見る
+5. `client::window` で描画と入力を見る
 
-## メッセージフロー要約
-
-```
-Win32 WndProc
-  |  WM_CHAR / WM_KEYDOWN
-  |  -> ClientMessage::Input         msg_tx
-  |  -> (PaneId, SplitDirection)     split_tx
-  |  -> ()                           float_tx
-  v
-app.rs select! loop
-  |  ClientMessage -> merged_tx -> Server::run()
-  |
-  v ServerMessage <----------------------------+
-ClientState / PaneStore update                 |
-  |                                   Server::run()
-  |  Arc<Mutex<Grid>> ref              |
-  v                                   | Pane x N
-WM_PAINT -> paint()                   |   PTY read task
-  GDI rendering                       |   -> vte::Parser
-                                      |   -> VtProcessor
-                                      |   -> Grid update (dirty=true)
-                                      |   -> output_tx.send(raw_bytes)
-                                      \--> ServerMessage::Output
-```
+この順に追うと、workspace 分割されていても迷いにくい。

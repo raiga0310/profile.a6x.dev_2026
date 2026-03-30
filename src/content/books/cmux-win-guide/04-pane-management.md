@@ -1,120 +1,215 @@
 ---
 title: "ペイン管理"
 order: 4
-description: "Pane / PaneTree / Workspace の階層構造と分割フローを解説する。"
+description: "Workspace / Surface / PaneTree と、クライアント側 LayoutNode の同期を追う。"
 ---
 
 ## 階層構造
 
+サーバー側のセッション階層は今も 3 段だ。
+
+```text
+Workspace
+  └── Surface
+        └── PaneTree
+              ├── Leaf(PaneId)
+              └── Split { direction, ratio, first, second }
 ```
-Workspace（セッション全体）
-  └── Surface（タブ）
-        └── PaneTree（二分木）
-              ├── Leaf（Pane）
-              └── Node { direction, ratio, left, right }
-```
 
-`PaneTree` はサーバー側のローカル型（`server/src/session.rs`）。クライアント側の `LayoutNode`（`client/src/layout.rs`）とは別物で、GUI 描画用の矩形計算に使う。
+ただし GUI 描画はこの木を直接使わず、
+client crate 側で同型の `LayoutNode` を持ち直している。
 
-## Pane のライフサイクル
+- サーバー: `crates/server/src/session/model.rs` の `PaneTree`
+- クライアント: `crates/client/src/layout/tree.rs` の `LayoutNode`
 
-`Pane::spawn()` が呼ばれると以下が起動する。
+分離している理由は、サーバーは PTY とセッション整合性を管理し、
+クライアントはピクセル矩形と UI 状態を計算する責務だからだ。
 
-1. `PtySession::spawn()` — ConPTY を開き、読み取りスレッドを起動
-2. PTY 読み取りタスク — `output_rx` から受け取り `TerminalSink::feed()` でグリッド更新
-3. 子プロセス終了監視タスク — `ExitWaiter::wait()` でブロック、終了時に `Notification` を送出
+## `PaneStore` が持つ UI 状態
 
-`Pane::Drop` で `ProcessKiller::kill()` を呼んで cmd.exe を終了させる（孤児プロセス防止。`docs/troubleshoot.md` T-03 参照）。
+現行実装のペイン管理は、レイアウト木そのものより
+`PaneStore` が何を持っているかを見ると分かりやすい。
 
-## ペイン操作
+主なフィールド:
 
-### キーバインド体系
+- `grids: HashMap<PaneId, Arc<Mutex<Grid>>>`
+- `layout: LayoutNode`
+- `active: PaneId`
+- `scroll_offset`
+- `floating` / `floating_visible` / `pre_float_active`
+- `launcher`
+- `copy_mode`
+- `save_prompt`
+- `theme_launcher`
+- `pane_commands`
 
-yatamux のキー操作は **ノーマルモード** と **ペインモード** の2層になっている。
+この 1 か所に UI の可変状態を集約しているので、
+bridge 側も Win32 側も更新対象を迷いにくい。
 
-| モード | 入り方 | 用途 |
-|--------|--------|------|
-| ノーマルモード | 通常状態 | テキスト入力・直接操作 |
-| ペインモード | `Ctrl+B` | ペイン管理の各操作 |
-| コピーモード | ペインモード中に `V` | テキスト選択・ヤンク |
+## キーバインド体系
 
-ペインモード中はステータスバーにキー一覧が表示される。
-
-[**Ctrl+B を押してステータスバーにキー一覧が表示された状態のスクリーンショットを差し込む予定**]
-
-**ノーマルモードの主要キーバインド:**
+### ノーマルモード
 
 | キー | 動作 |
 |------|------|
-| `Ctrl+Shift+E` | 垂直分割（縦に並べる）|
-| `Ctrl+Shift+O` | 水平分割（横に並べる）|
+| `Ctrl+Shift+E` | 縦分割 |
+| `Ctrl+Shift+O` | 横分割 |
 | `Ctrl+Shift+W` | アクティブペインを閉じる |
-| `Ctrl+→/↓/←/↑` | フォーカス移動 |
-| `Ctrl+F` | フローティングペイン切り替え |
-| `Ctrl+B` | ペインモードへ |
+| `Ctrl+Tab` / `Ctrl+Shift+Tab` | 次 / 前のペインへ移動 |
+| `Ctrl+矢印` | 最近傍ペインへ移動 |
+| `Ctrl+F` | フローティングペイン表示切り替え |
+| `Ctrl+P` | テーマランチャー |
+| `Ctrl+B` | ペインモード |
 
-**ペインモード（`Ctrl+B` 後）:**
+### ペインモード
+
+`Ctrl+B` で入り、ステータスバーの表示が切り替わる。
 
 | キー | 動作 |
 |------|------|
-| `E` / `O` | 垂直 / 水平分割 |
-| `W` | アクティブペインを閉じる |
-| `F` | フローティング切り替え |
+| `E` / `O` | 縦 / 横分割 |
+| `W` | ペインを閉じる |
+| `F` | フローティング表示切り替え |
 | `X` | スクロールバックを `$EDITOR` で開く |
-| `<` / `>` | ペイン幅を ±5% リサイズ |
-| `L` | レイアウトランチャーを開く |
-| `V` | コピーモードへ |
-| `q` | ノーマルモードへ戻る |
+| `L` | レイアウトランチャー |
+| `S` | 保存プロンプト |
+| `V` | コピーモード |
+| `<` / `>` | 縦分割比を ±5 % 調整 |
+| `+` / `-` | 横分割比を ±5 % 調整 |
+| `q` / `Esc` | ノーマルモードへ戻る |
 
-### ペイン分割フロー
+実装上は one-shot ではなく、操作内容によってはそのままモードに残る。
+たとえば `V` なら Copy モードへ、`S` なら保存プロンプトへ遷移する。
 
-### GUI 起点（ノーマルモード: Ctrl+Shift+E/O、またはペインモード: Ctrl+B → E/O）
+## 分割フロー
 
-```
-Win32 WndProc
-  → split_tx.send((active_pane_id, direction))
-  → app.rs の select! ループが受信
-  → ClientMessage::CreatePane { split_from: Some(id), .. } を Server へ
-  → Server が Pane::spawn() して ServerMessage::PaneCreated を返す
-  → app.rs がレイアウトツリーに分割を反映（pending キューで照合）
-```
+### GUI 起点
 
-### IPC CLI 起点（yatamux split-pane）
-
-```
-yatamux split-pane --target <id> --direction horizontal
-  → Named Pipe 経由で ClientMessage::CreatePane
-  → ServerMessage::PaneCreated { split_from: Some(id), direction: Some(dir) }
-  → app.rs の PaneCreated ハンドラ（else 節）でレイアウトに追加
+```text
+Ctrl+Shift+E / Ctrl+Shift+O
+  → ClientState::request_split()
+  → split_tx.send((active_pane, direction))
+  → bridge が ClientMessage::CreatePane を Server へ
+  → Server が Pane::spawn()
+  → ServerMessage::PaneCreated
+  → bridge が TerminalSink / Grid / LayoutNode を追加
+  → 親ペインに Resize を送り直す
 ```
 
-IPC 起点の場合は `split_from` / `direction` が確定しているため、GUI 起点の pending キュー照合とは別パスで処理する。
+bridge は `pending: VecDeque<(PaneId, SplitDirection, TermSize)>` を持ち、
+どの GUI 操作に対応する `PaneCreated` かを照合している。
 
-### フローティングペイン
+### IPC 起点
 
-[**Ctrl+F でペインがウィンドウ中央にオーバーレイ表示されている状態のスクリーンショットを差し込む予定**]
+`yatamux split-pane` の場合は、`ServerMessage::PaneCreated` に
+`split_from` と `direction` が入って返る。
+bridge はそれを見てクライアント側 `LayoutNode` を補正する。
 
-`Ctrl+F` で `float_tx` 経由のフローティング切り替えを要求する。`PaneStore.floating: Option<PaneId>` が設定されると、`compute_rects()` がそのペインをウィンドウ中央の固定サイズ矩形に配置する。`floating_visible: bool` で表示/非表示をトグルする。
+つまり現在の分割同期は、
+
+- GUI 起点なら pending キュー
+- IPC 起点なら `PaneCreated` のメタデータ
+
+の二経路を持っている。
+
+## フローティングペイン
+
+[**中央にオーバーレイ表示されたフローティングペインのスクリーンショットを差し込む予定**]
+
+フローティングペインは `LayoutNode` に含めない。
+`PaneStore.floating` と `PaneStore.floating_visible` で別管理する。
+
+```text
+通常レイアウト: LayoutNode が担当
+フロート表示  : PaneStore::floating_rect(content_rect) が担当
+```
+
+初回 `Ctrl+F` では通常の `CreatePane` を 1 枚発行し、
+作成された PaneId を `floating` に記録する。
+以後は表示/非表示だけを切り替える。
+
+## コピーモードと通常選択
 
 ### コピーモード
 
-ペインモードで `V` を押すとコピーモードへ遷移する。
+`CopyState` は現在 `cursor` と `anchor` の 2 つだけを持つ。
 
-| キー | 動作 |
-|------|------|
-| `h/j/k/l` または矢印 | カーソル移動 |
-| `v` | 選択開始 / 解除 |
-| `y` または `Enter` | 選択範囲をクリップボードへ、コピーモード終了 |
-| `q` または `Esc` | コピーモード終了 |
+```text
+CopyState
+  cursor: (col, row)
+  anchor: Option<(col, row)>
+```
 
-また、左ドラッグによるマウス選択も対応しており、ドラッグ終了時に自動的にクリップボードへコピーされる。
+選択中かどうかは毎回 `is_selected()` で計算する。
+以前のような固定レンジ保持ではなく、カーソルとアンカーから導出する形だ。
 
-## 設定・永続化
+### 通常のマウス選択
 
-### セッション永続化
+Normal モードの左ドラッグは `normal_selection` に別管理される。
+こちらはコピー専用 UI ではなく、ドラッグ終了時にそのままクリップボードへ送る。
 
-終了時（`WM_CLOSE`）に `LayoutSnapshot` を `%APPDATA%\yatamux\session.toml` へ自動書き出しし、次回起動時にレイアウトを復元する。`LayoutNodeDef` は `LayoutNode` の serde 可能な鏡像型で、TOML にしたのは「万が一ファイルが壊れたとき人間が手で直せる形式」にしたかったからだ。JSON でも動くが、ネストした構造を目で追うには TOML の方が読みやすい。
+つまり現行実装では、
 
-`session.toml` が破損または存在しない場合は無視してデフォルトレイアウト（1ペイン）で起動する。
+- キーボード主導の `copy_mode`
+- マウス主導の `normal_selection`
 
-`YATAMUX_CONFIG_DIR` 環境変数でパスをオーバーライドでき、テスト時に本番設定を汚さずに済む。
+が別系統で共存している。
+
+## ペイン削除と終了
+
+削除はまずサーバーへ `ClosePane` を送り、
+実際の木構造更新は `PaneClosed` を受けたあとに行う。
+
+bridge 側の処理:
+
+1. `sinks` と `grids` から対象を削除
+2. フローティング対象なら `floating = None`
+3. 通常レイアウトなら `LayoutNode::remove_pane()` を呼ぶ
+4. フォーカス先があれば `active` を移す
+5. `grids` が空なら `should_quit = true`
+
+最後の 1 ペインを閉じたときも特別扱いせず、
+`WM_TIMER` 側が `should_quit` を見て `DestroyWindow` する。
+
+## セッション保存と復元
+
+### `session.toml`
+
+終了時は `LayoutSnapshot` を `%APPDATA%\yatamux\session.toml` に保存する。
+
+```text
+LayoutSnapshot
+  root: LayoutNodeDef
+  active: PaneId
+```
+
+`LayoutNodeDef` は `LayoutNode` のシリアライズ専用ミラー型で、
+`Grid` を含まない。
+
+### 復元時の実装
+
+起動時は `load_initial_layout()` が `session.toml` を読み、
+旧 PaneId から新 PaneId へのマッピングを作りながら再帰的に `CreatePane` していく。
+これにより、保存時のアクティブペインも復元できる。
+
+## 宣言的レイアウトと保存レイアウト
+
+### 読み込み
+
+`%APPDATA%\yatamux\layouts\<name>.toml` は `[[panes]]` の列で定義する。
+各エントリは「直前のペインからどう分割するか」を持つ。
+
+### 保存
+
+現在のレイアウトを保存するときは `layout_to_toml()` が DFS で木をたどり、
+線形な `[[panes]]` 列に落とす。
+
+このとき `pane_commands` に記録されているコマンドだけが `command = "..."` として残る。
+つまり、
+
+- レイアウトファイルから適用されたコマンドは保存対象
+- 手入力したコマンドは保存対象外
+
+という設計になっている。
+
+これは「レイアウトとして再現可能な情報だけを保存する」という割り切りだ。
