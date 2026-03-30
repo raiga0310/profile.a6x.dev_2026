@@ -1,6 +1,8 @@
 <script type="module" is:inline>
   const MERMAID_SELECTOR = '.mermaid, pre[data-language="mermaid"]';
   const WIDE_DIAGRAM_THRESHOLD = 1.1;
+  const TALL_DIAGRAM_ASPECT_RATIO = 1.15;
+  const TALL_DIAGRAM_MIN_HEIGHT = 720;
   let mermaidLoader;
 
   function getMermaidTheme() {
@@ -35,15 +37,25 @@
     return null;
   }
 
-  function getIntrinsicSvgWidth(svg) {
+  function getIntrinsicSvgSize(svg) {
     const viewBox = svg.viewBox?.baseVal;
-    if (viewBox && Number.isFinite(viewBox.width) && viewBox.width > 0) {
-      return viewBox.width;
+    if (
+      viewBox
+      && Number.isFinite(viewBox.width)
+      && Number.isFinite(viewBox.height)
+      && viewBox.width > 0
+      && viewBox.height > 0
+    ) {
+      return {
+        width: viewBox.width,
+        height: viewBox.height,
+      };
     }
 
     const width = Number.parseFloat(svg.getAttribute('width') ?? '');
-    if (Number.isFinite(width) && width > 0) {
-      return width;
+    const height = Number.parseFloat(svg.getAttribute('height') ?? '');
+    if (Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0) {
+      return { width, height };
     }
 
     return null;
@@ -56,16 +68,27 @@
       return;
     }
 
-    const intrinsicWidth = getIntrinsicSvgWidth(svg);
+    const intrinsicSize = getIntrinsicSvgSize(svg);
     const availableWidth = node.clientWidth;
-    const isWide = intrinsicWidth != null
+    const isWide = intrinsicSize != null
       && availableWidth > 0
-      && intrinsicWidth > availableWidth * WIDE_DIAGRAM_THRESHOLD;
+      && intrinsicSize.width > availableWidth * WIDE_DIAGRAM_THRESHOLD;
+    const isTall = intrinsicSize != null
+      && intrinsicSize.height > TALL_DIAGRAM_MIN_HEIGHT
+      && intrinsicSize.height > intrinsicSize.width * TALL_DIAGRAM_ASPECT_RATIO;
 
     if (isWide) {
       node.dataset.mermaidLayout = 'wide';
-      svg.style.width = `${intrinsicWidth}px`;
+      svg.style.width = `${intrinsicSize.width}px`;
       svg.style.maxWidth = 'none';
+      svg.style.height = 'auto';
+      return;
+    }
+
+    if (isTall) {
+      node.dataset.mermaidLayout = 'tall';
+      svg.style.removeProperty('width');
+      svg.style.maxWidth = '92%';
       svg.style.height = 'auto';
       return;
     }
@@ -149,5 +172,14 @@
 
   .mermaid[data-mermaid-layout="wide"] svg {
     margin: 0;
+  }
+
+  .mermaid[data-mermaid-layout="tall"] {
+    max-height: min(70vh, 48rem);
+    overflow-y: auto;
+  }
+
+  .mermaid[data-mermaid-layout="tall"] svg {
+    max-width: 92%;
   }
 </style>
