@@ -1,5 +1,6 @@
 <script type="module" is:inline>
   const MERMAID_SELECTOR = '.mermaid, pre[data-language="mermaid"]';
+  const WIDE_DIAGRAM_THRESHOLD = 1.1;
   let mermaidLoader;
 
   function getMermaidTheme() {
@@ -34,6 +35,47 @@
     return null;
   }
 
+  function getIntrinsicSvgWidth(svg) {
+    const viewBox = svg.viewBox?.baseVal;
+    if (viewBox && Number.isFinite(viewBox.width) && viewBox.width > 0) {
+      return viewBox.width;
+    }
+
+    const width = Number.parseFloat(svg.getAttribute('width') ?? '');
+    if (Number.isFinite(width) && width > 0) {
+      return width;
+    }
+
+    return null;
+  }
+
+  function applyMermaidLayout(node) {
+    const svg = node.querySelector('svg');
+    if (!(svg instanceof SVGSVGElement)) {
+      node.dataset.mermaidLayout = 'fit';
+      return;
+    }
+
+    const intrinsicWidth = getIntrinsicSvgWidth(svg);
+    const availableWidth = node.clientWidth;
+    const isWide = intrinsicWidth != null
+      && availableWidth > 0
+      && intrinsicWidth > availableWidth * WIDE_DIAGRAM_THRESHOLD;
+
+    if (isWide) {
+      node.dataset.mermaidLayout = 'wide';
+      svg.style.width = `${intrinsicWidth}px`;
+      svg.style.maxWidth = 'none';
+      svg.style.height = 'auto';
+      return;
+    }
+
+    node.dataset.mermaidLayout = 'fit';
+    svg.style.removeProperty('width');
+    svg.style.maxWidth = '100%';
+    svg.style.height = 'auto';
+  }
+
   async function renderMermaid() {
     const nodes = Array.from(document.querySelectorAll(MERMAID_SELECTOR))
       .map(normalizeMermaidNode)
@@ -57,6 +99,10 @@
       theme: getMermaidTheme(),
     });
     await mermaid.run({ nodes });
+
+    for (const node of nodes) {
+      applyMermaidLayout(node);
+    }
   }
 
   function scheduleRender() {
@@ -93,8 +139,15 @@
 
   .mermaid svg {
     display: block;
-    max-width: 100%;
     height: auto;
     margin: 0 auto;
+  }
+
+  .mermaid[data-mermaid-layout="fit"] svg {
+    max-width: 100%;
+  }
+
+  .mermaid[data-mermaid-layout="wide"] svg {
+    margin: 0;
   }
 </style>
