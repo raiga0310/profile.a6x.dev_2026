@@ -6,22 +6,38 @@ description: "ConPTY のバイト列が Grid を経由して GDI に描かれる
 
 ## 全体の流れ
 
-```mermaid
-flowchart TD
-  PTY["ConPTY output"]
-  PTY --> READ["Pane の PTY 読み取りタスク"]
-  READ --> PARSER["vte::Parser"]
-  PARSER --> PROC["VtProcessor"]
-  PROC --> GRID["Grid 更新"]
-  GRID --> OUTPUT["ServerMessage::Output"]
-  OUTPUT --> BRIDGE["app bridge"]
-  BRIDGE --> SINK["TerminalSink::feed()"]
-  SINK --> STORE["PaneStore 上の Grid 反映"]
-  STORE --> TIMER["WM_TIMER で dirty 行を検知"]
-  TIMER --> INVALIDATE["InvalidateRect"]
-  INVALIDATE --> PAINT["WM_PAINT"]
-  PAINT --> BACKBUFFER["GDI バックバッファ描画"]
-  BACKBUFFER --> BLT["BitBlt"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, down, centered
+
+#centered(column(
+  accent-node("ConPTY output"),
+  down(),
+  code-node("Pane の PTY 読み取りタスク"),
+  down(),
+  code-node("vte::Parser"),
+  down(),
+  code-node("VtProcessor"),
+  down(),
+  code-node("Grid 更新"),
+  down(),
+  code-node("ServerMessage::Output"),
+  down(),
+  code-node("app bridge"),
+  down(),
+  code-node("TerminalSink::feed()"),
+  down(),
+  code-node("PaneStore 上の Grid 反映"),
+  down(),
+  code-node("WM_TIMER で dirty 行を検知"),
+  down(),
+  code-node("InvalidateRect"),
+  down(),
+  code-node("WM_PAINT"),
+  down(),
+  code-node("GDI バックバッファ描画"),
+  down(),
+  code-node("BitBlt"),
+))
 ```
 
 サーバー側でも `Grid` は更新されているが、クライアントは描画専用に
@@ -43,17 +59,27 @@ flowchart TD
 
 を 1 つにまとめた仮想スクリーンバッファだ。
 
-```mermaid
-flowchart TD
-  GRID["Grid"]
-  GRID --> G1["cols / rows"]
-  GRID --> G2["cells: Vec&lt;Vec&lt;Cell&gt;&gt;"]
-  GRID --> G3["cursor: CursorPos"]
-  GRID --> G4["dirty: Vec&lt;bool&gt;"]
-  GRID --> G5["saved_main: Option&lt;MainScreenSnapshot&gt;"]
-  GRID --> G6["scroll_top / scroll_bottom"]
-  GRID --> G7["scrollback: ScrollbackBuffer"]
-  GRID --> G8["width_config: CjkWidthConfig"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("Grid"),
+  down(),
+  row(
+    column(
+      code-node("cols / rows"),
+      code-node("cells: Vec<Vec<Cell>>"),
+      code-node("cursor: CursorPos"),
+      code-node("dirty: Vec<bool>"),
+    ),
+    column(
+      code-node("saved_main: Option<MainScreenSnapshot>"),
+      code-node("scroll_top / scroll_bottom"),
+      code-node("scrollback: ScrollbackBuffer"),
+      code-node("width_config: CjkWidthConfig"),
+    ),
+  ),
+))
 ```
 
 ## セル表現
@@ -61,15 +87,29 @@ flowchart TD
 `Cell` は内容とスタイルを持つ。内容は `CellContent` で表現され、
 全角文字の右側を `Continuation` で埋める方針は現行実装でも同じだ。
 
-```mermaid
-flowchart TD
-  CELL["Cell"]
-  CELL --> CONTENT["content"]
-  CELL --> STYLE["style"]
-  CONTENT --> GRAPH["Grapheme { text, width }"]
-  CONTENT --> CONT["Continuation"]
-  CONTENT --> EMPTY["Empty"]
-  STYLE --> STYLE_FIELDS["fg / bg / bold / italic / underline / reverse / dim ..."]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("Cell"),
+  down(),
+  row(
+    column(
+      accent-node("content"),
+      down(),
+      row(
+        code-node("Grapheme", "{ text, width }"),
+        code-node("Continuation"),
+        code-node("Empty"),
+      ),
+    ),
+    column(
+      accent-node("style"),
+      down(),
+      code-node("fg / bg / bold / italic", "underline / reverse / dim ..."),
+    ),
+  ),
+))
 ```
 
 この表現により、
@@ -160,17 +200,30 @@ box-drawing 文字は `ExtTextOutW` に丸投げせず、
 
 起動時はインストール済みフォントから候補順に選ぶ。
 
-```mermaid
-flowchart TD
-  F1["HackGen Console NF"] --> F2["HackGen Console"]
-  F2 --> F3["HackGen35 Console NF"]
-  F3 --> F4["HackGen35 Console"]
-  F4 --> F5["HackGen NF"]
-  F5 --> F6["HackGen"]
-  F6 --> F7["Cascadia Mono"]
-  F7 --> F8["Cascadia Code"]
-  F8 --> F9["Consolas"]
-  F9 --> F10["MS Gothic"]
+```typst
+#import "./_diagram.typ": code-node, column, down, centered
+
+#centered(column(
+  code-node("HackGen Console NF"),
+  down(),
+  code-node("HackGen Console"),
+  down(),
+  code-node("HackGen35 Console NF"),
+  down(),
+  code-node("HackGen35 Console"),
+  down(),
+  code-node("HackGen NF"),
+  down(),
+  code-node("HackGen"),
+  down(),
+  code-node("Cascadia Mono"),
+  down(),
+  code-node("Cascadia Code"),
+  down(),
+  code-node("Consolas"),
+  down(),
+  code-node("MS Gothic"),
+))
 ```
 
 日本語表示、Nerd Font 系グリフ、Windows 標準環境のフォールバックの順で

@@ -9,6 +9,12 @@ public/slides/*.pdf
 # Typst 生成 OG 画像（CI で自動生成）
 public/og/
 
+# Markdown 内 Typst 図版のビルド生成物
+public/generated/typst-diagrams/
+
+# Markdown 内 Typst 図版の一時ソース
+src/content/**/__typst-diagram-*.typ
+
 # dependencies
 node_modules/
 
