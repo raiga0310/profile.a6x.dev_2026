@@ -8,7 +8,7 @@ featured: false
 aiInvolvement:
   planning: human
   writing: ai
-  review: none
+  review: ai
   proofreading: ai
 ---
 
@@ -16,9 +16,11 @@ aiInvolvement:
 
 ## はじめに
 
-こんにちは。Claude です。
+あなたの `settings.json` に、いくつ「もう聞かないで」が入っていますか。
 
-raiga が `/dont-ask-again-auditor` という Claude Code Skill を作りました。「Claude Code や Codex に永続的に承認させた操作を棚卸しして、Markdown レポートにする」というものです。今回は作った経緯・使い方・実装のポイント・競合との比較を書きます。
+こんにちは。Claude です。raiga が `/dont-ask-again-auditor` を使って自分の環境を調べたところ、意図したはずの設定が「どこかに残り続けていた」ケースが複数見つかりました。悪意はない。でも、忘れていた。それがこの Skill を作った動機です。
+
+今回は作った経緯・使い方・実装のポイント・競合との比較を書きます。
 
 ---
 
@@ -45,6 +47,20 @@ Claude Code の `permissions.allow` を使うと、特定のコマンドやツ�
 1 つ 1 つは「その作業中に便利だったから許可した」判断です。しかし数週間後に見返すと、任意の PowerShell コマンド、任意の Python コード実行、任意の WSL コマンドが無条件で通る状態になっている。どの設定を残すべきで、どれは不要になったのかが分からなくなります。
 
 これを整理するための Skill が `/dont-ask-again-auditor` です。
+
+---
+
+## インストール
+
+Skill のソースは raiga の GitHub リポジトリで公開しています（現在整備中、公開後にリンクを追記予定）。`~/.claude/skills/dont-ask-again-auditor/` に配置するだけで使えます。
+
+```bash
+# ~/.claude/skills/ 配下に配置する
+git clone https://github.com/raiga0310/dont-ask-again-auditor \
+  ~/.claude/skills/dont-ask-again-auditor
+```
+
+Claude Code を再起動すると `/dont-ask-again-auditor` が使えるようになります。
 
 ---
 
@@ -90,42 +106,41 @@ Claude Code の `permissions.allow` を使うと、特定のコマンドやツ�
 
 ---
 
-## 出力されるレポートの構成
+## 出力されるレポートの構成と実行例
 
-レポートは Markdown で出力されます。
+実行するとこのような出力になります（架空の例）：
 
-```
+```markdown
 ## サマリー
-走査対象ルート、件数、リスク別カウント
 
-## 対象範囲と方法
-どのファイルを、どんな方法で検出したか
+- 走査対象ルート: `~/.claude`, `~/.codex`, `~/dev`（プロジェクトローカル）
+- 走査ファイル数: 42
+- 検出レコード数: 9（信頼度 高: 3 / 中: 4 / 低: 2）
+- リスク別件数: 高: 3 / 中: 4 / 低: 2
+- stale 件数: 1
 
 ## 検出結果（永続設定）
-信頼度 高 / 中 の項目をテーブルで表示
 
-## 検出結果（ヒューリスティック）
-信頼度 低 の弱い一致をここに分離
-
-## 除外済み / 誤検知候補
-models_cache.json など既知の偽陽性ファイル
-
-## 優先確認リスト
-リスク 高 または stale な項目に絞った行動優先リスト
-
-## 推奨アクション
-jq または python3 で直接修正できるスニペット付き
+| ツール | キー / 対象 | スコープ | リスク | 信頼度 | 推奨対応 |
+|--------|------------|---------|--------|--------|---------|
+| Claude Code | `skipDangerousModePermissionPrompt` | グローバル | 高 | 高 | 早めに削除を検討 |
+| Claude Code | `Bash(some-shell:*)` | プロジェクト | 高 | 高 | スコープを絞るか削除 |
+| Claude Code | `Bash(git commit:*)` | プロジェクト | 中 | 高 | `--no-verify` も通るため要確認 |
 ```
 
-実際に raiga の環境に対して `/dont-ask-again-auditor --root ~/dev` を実行した結果、リスク 高 が複数件、中 が数件見つかりました。具体的な項目は伏せますが、大まかな傾向としては以下のような構成でした。
+raiga の実環境に対して `--root ~/dev` を実行した結果は、リスク 高 が複数件、中 が数件でした。具体的な項目は伏せますが、「ワイルドカード付きシェルコマンド」と「グローバルな確認スキップ設定」が高リスク項目の大半を占めていました。
 
-| リスク | 件数 | 典型的なパターン |
-|--------|------|-----------------|
-| **高** | 複数 | ワイルドカード付きシェルコマンド（`*` で任意引数を受け付ける形）、グローバルな確認スキップ設定 |
-| 中 | 複数 | ビルド・バージョン管理ツールのサブコマンド、スクリプト実行 |
-| 低 | 数件 | 読み取り専用操作、ドメイン制限付き Web アクセス |
+「推奨アクション」セクションには修正スニペットも付きます。例えばキーを削除する場合は：
 
-raiga が `--dangerously-skip-permissions` 運用をしているのは[以前の記事](https://profile.a6x.dev/blogs/posts/cmux-win/)にも書きましたが、その設定が `settings.json` に恒久設定として残り続けていたケースも含まれていました。
+```bash
+# バックアップを取ってから
+cp ~/.claude/settings.json ~/.claude/settings.json.bak
+
+# jq で該当キーを削除
+jq 'del(.skipDangerousModePermissionPrompt)' \
+  ~/.claude/settings.json > /tmp/_s.json \
+  && mv /tmp/_s.json ~/.claude/settings.json
+```
 
 ---
 
@@ -177,6 +192,18 @@ skills/dont-ask-again-auditor/
 
 `references/` にルールとテンプレートを分離しているのがポイントです。検出ルールを変えたいときは `audit-rules.md` だけ、出力フォーマットを変えたいときは `report-template-*.md` だけ変更すれば済みます。
 
+生成されるレポートのセクション構成はテンプレートで定義されており、以下の順序で出力されます。
+
+```
+## サマリー
+## 対象範囲と方法
+## 検出結果（永続設定）    ← 信頼度 高 / 中 の項目をテーブルで表示
+## 検出結果（ヒューリスティック）  ← 信頼度 低 の弱い一致を分離
+## 除外済み / 誤検知候補
+## 優先確認リスト
+## 推奨アクション          ← jq または python3 で直接修正できるスニペット付き
+```
+
 ---
 
 ## 競合 Skill との比較
@@ -185,7 +212,7 @@ skills/dont-ask-again-auditor/
 
 ### tokoroten/prompt-review
 
-**最も近い先行実装**として参考にしました。
+**最も近い先行実装**として参考にしました（[GitHub](https://github.com/tokoroten/prompt-review)）。
 
 `prompt-review` は Claude Code の対話ログを収集・分析して日本語レポートを生成する Skill です。`SKILL.md`、`scripts/collect.py`、`references/report-template.md` という分解が `/dont-ask-again-auditor` の構成と非常に近い。Python スクリプトが収集を担い LLM がレポートを書くという役割分担も同じです。
 
@@ -193,9 +220,9 @@ skills/dont-ask-again-auditor/
 
 ### Claude Code Plugins ギャラリーの audit 系 Skill
 
-公開ギャラリーには `cookbook-audit`（ノートブック監査）、`auditing-security`（Skill 自体のセキュリティ監査）、`audit-skill`（汎用監査）などがあります。「監査を Skill にする」発想は珍しくありません。
+公開ギャラリーには audit 系の Skill がいくつかあります（確認時点での名称。継続的に追加されているため現在の状況は異なる場合があります）。「監査を Skill にする」発想自体は珍しくありません。
 
-しかし対象がコード、ノートブック、Terraform、Skill 定義などに集中しており、**Claude Code や Codex の承認設定を監査するもの**は見つかりませんでした。
+しかし対象がコード、ノートブック、Terraform、Skill 定義などに集中しており、現時点では **Claude Code や Codex の承認設定を監査するもの**は見当たりませんでした。
 
 ### Claude Code の公開 Issue
 
@@ -206,7 +233,7 @@ Claude Code の GitHub Issue には、Don't Ask Again が `settings.local.json` 
 | ツール | 対象 | 形式 |
 |--------|------|------|
 | tokoroten/prompt-review | プロンプト品質・傾向 | Claude Code Skill |
-| cookbook-audit 等 | コード・ノートブック・Terraform | Claude Code Skill |
+| 各種 audit 系 Skill | コード・ノートブック・Terraform | Claude Code Skill |
 | `/dont-ask-again-auditor` | 永続承認設定（settings.json 系） | Claude Code Skill |
 
 「完全に前例ゼロ」ではありませんが、この特定の穴を埋めるものは公開では見当たりませんでした。
@@ -219,11 +246,11 @@ Claude Code の GitHub Issue には、Don't Ask Again が `settings.local.json` 
 
 **1. worktree に設定が複製されていた**
 
-あるプロジェクトの worktree 配下に、親プロジェクトと全く同じ `settings.local.json` が複数存在していました。サブエージェントが worktree を作成したときに設定ファイルごとコピーされた形です。worktree を削除すれば消えますが、残存していると「何箇所も同じ許可が入っている」状態になります。
+あるプロジェクトの worktree 配下に、親プロジェクトと全く同じ `settings.local.json` が複数存在していました。サブエージェントが worktree を作成したときに設定ファイルごとコピーされた形です。「何箇所も同じ許可が入っている」という状態は、監査するまで気づきませんでした。worktree を削除すれば消えますが、残したまま放置しがちです。
 
 **2. `node_modules` 配下にも `settings.local.json` が存在する**
 
-フロントエンドプロジェクトの `node_modules` 配下のパッケージに `.claude/settings.local.json` が含まれていました。npm パッケージに誤って混入したものと推測されます。Claude Code の設定ではないため監査対象外ですが、スキャン時に拾ってしまいます。`node_modules` 配下を除外するフィルタは必須です。
+フロントエンドプロジェクトの `node_modules` 配下のパッケージに `.claude/settings.local.json` が含まれていました。npm パッケージに誤って混入したものと推測されます（`.npmignore` の設定漏れと思われる）。Claude Code の設定ではないため監査対象外ですが、スキャン時に拾ってしまいます。現時点では `node_modules` 配下を除外するフィルタが必須です。
 
 ---
 
