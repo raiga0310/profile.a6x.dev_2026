@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import CopyCodeButton from '../components/CopyCodeButton.astro';
 
 interface ChapterEntry {
   slug: string;
@@ -71,6 +72,7 @@ const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
       </article>
     </div>
   </div>
+  <CopyCodeButton />
 </BaseLayout>
 
 <style>
