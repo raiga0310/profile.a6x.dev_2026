@@ -1,7 +1,6 @@
 ---
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import MermaidSupport from '../components/MermaidSupport.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -62,6 +61,5 @@ const locale = (lang === 'en' ? 'en' : 'ja') as 'ja' | 'en';
       <slot />
     </main>
     <Footer />
-    <MermaidSupport />
   </body>
 </html>

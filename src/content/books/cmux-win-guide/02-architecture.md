@@ -9,26 +9,50 @@ description: "workspace 化後の起動フロー、チャネル構成、IPC 形�
 エントリポイントは `src/main.rs`。
 `clap` で CLI サブコマンドを解釈し、GUI 起動時は `app::run()` に流れる。
 
-```mermaid
-flowchart TD
-  MAIN["main()"]
-  MAIN -->|CLI サブコマンド| CLI["src/cli.rs"]
-  MAIN -->|GUI 起動| APP["app::run(layout_name, app_config)"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, soft-node, column, row, down, rarrow, centered
 
-  APP --> BOOT["bootstrap_runtime()"]
-  BOOT --> BOOT1["Server::new()"]
-  BOOT --> BOOT2["tokio spawn<br>Server::run()"]
-  BOOT --> BOOT3["tokio spawn<br>run_ipc_server()"]
-  BOOT --> BOOT4["CreateWorkspace / CreateSurface / CreatePane"]
-
-  APP --> LAYOUT["load_initial_layout()"]
-  LAYOUT --> LAYOUT1["--layout &lt;name&gt; を適用"]
-  LAYOUT --> LAYOUT2["session.toml を復元"]
-  LAYOUT --> LAYOUT3["失敗時は単一ペイン"]
-
-  APP --> FANOUT["spawn_bridge_fanout()"]
-  APP --> BRIDGE["spawn_server_bridge()"]
-  APP --> WINDOW["spawn_blocking(run_window)"]
+#centered(column(
+  accent-node("main()"),
+  down(),
+  row(
+    column(
+      soft-node("CLI サブコマンド"),
+      code-node("src/cli.rs"),
+    ),
+    rarrow(label: "GUI 起動"),
+    column(
+      code-node("app::run(layout_name, app_config)"),
+      down(),
+      row(
+        column(
+          accent-node("bootstrap_runtime()"),
+          down(),
+          column(
+            code-node("Server::new()"),
+            code-node("tokio spawn", "Server::run()"),
+            code-node("tokio spawn", "run_ipc_server()"),
+            code-node("CreateWorkspace", "CreateSurface", "CreatePane"),
+          ),
+        ),
+        column(
+          accent-node("load_initial_layout()"),
+          down(),
+          column(
+            soft-node("--layout <name> を適用"),
+            soft-node("session.toml を復元"),
+            soft-node("失敗時は単一ペイン"),
+          ),
+        ),
+        column(
+          code-node("spawn_bridge_fanout()"),
+          code-node("spawn_server_bridge()"),
+          code-node("spawn_blocking", "run_window"),
+        ),
+      ),
+    ),
+  ),
+))
 ```
 
 `bootstrap_runtime()` が最初の Workspace / Surface / Pane を作り、
@@ -91,13 +115,19 @@ IPC と GUI の両方へ同じ PTY 出力を配る fan-out でコピーを避け
 内部イベント `PaneEvent` は文字列ベースの制御メッセージではなく、
 型付きイベントとして `pane.rs` と `session` の間だけで流している。
 
-```mermaid
-flowchart TD
-  EVENT["PaneEvent"]
-  EVENT --> NOTIF["Notification(String)"]
-  EVENT --> BELL["Bell"]
-  EVENT --> EXIT["ProcessExited"]
-  EVENT --> DONE["CommandFinished(Option&lt;i32&gt;)"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("PaneEvent"),
+  down(),
+  row(
+    code-node("Notification(String)"),
+    code-node("Bell"),
+    code-node("ProcessExited"),
+    code-node("CommandFinished(Option<i32>)"),
+  ),
+))
 ```
 
 ここから `ServerMessage::Notification` や `ServerMessage::CommandFinished` に変換する。
