@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import AiInvolvement from '../components/AiInvolvement.astro';
+import ShareButtons from '../components/ShareButtons.astro';
 
 type AiLevel = 'none' | 'human' | 'ai';
 
@@ -21,6 +22,7 @@ interface Props {
 
 const { title, description, publishedAt, tags, ogImage, lang = 'ja', aiInvolvement } = Astro.props;
 const dateLocale = lang === 'en' ? 'en-US' : 'ja-JP';
+const pageUrl = Astro.url.href;
 ---
 
 <BaseLayout title={`${title} | a6x.dev`} description={description} ogImage={ogImage} lang={lang}>
@@ -37,6 +39,9 @@ const dateLocale = lang === 'en' ? 'en-US' : 'ja-JP';
           {tags.map(tag => <span class="tag">{tag}</span>)}
         </div>
       )}
+      <div class="post__share">
+        <ShareButtons title={title} url={pageUrl} />
+      </div>
     </header>
     {aiInvolvement && (
       <AiInvolvement
@@ -79,6 +84,10 @@ const dateLocale = lang === 'en' ? 'en-US' : 'ja-JP';
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+
+  .post__share {
+    margin-top: 1rem;
   }
 
   .prose :global(h2),

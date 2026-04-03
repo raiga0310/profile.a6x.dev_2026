@@ -1,0 +1,133 @@
+---
+interface Props {
+  title: string;
+  url: string;
+}
+
+const { title, url } = Astro.props;
+const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+---
+
+<div class="share-buttons">
+  <a
+    class="share-btn share-btn--twitter"
+    href={twitterUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Twitterでシェア"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.262 5.636L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
+    </svg>
+    ポストする
+  </a>
+  <button
+    class="share-btn share-btn--copy"
+    id="copy-url-btn"
+    aria-label="URLをコピー"
+  >
+    <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span class="copy-label">URLをコピー</span>
+  </button>
+</div>
+
+<script>
+  const btn = document.getElementById('copy-url-btn');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        btn.classList.add('copied');
+        const label = btn.querySelector('.copy-label');
+        if (label) label.textContent = 'コピーしました';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          if (label) label.textContent = 'URLをコピー';
+        }, 2000);
+      } catch {
+        // clipboard API unavailable
+      }
+    });
+  }
+</script>
+
+<style>
+  .share-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s;
+    border: 1px solid transparent;
+    line-height: 1;
+  }
+
+  .share-btn--twitter {
+    background: #000;
+    color: #fff;
+  }
+
+  .share-btn--twitter:hover {
+    opacity: 0.8;
+  }
+
+  .share-btn--copy {
+    background: transparent;
+    color: var(--text-muted, #888);
+    border-color: var(--border, #ddd);
+  }
+
+  .share-btn--copy:hover {
+    color: var(--text, #333);
+    border-color: var(--text-muted, #888);
+  }
+
+  .share-btn--copy .icon-check {
+    display: none;
+  }
+
+  .share-btn--copy.copied {
+    color: var(--accent, #3a6e47);
+    border-color: var(--accent, #3a6e47);
+  }
+
+  .share-btn--copy.copied .icon-copy {
+    display: none;
+  }
+
+  .share-btn--copy.copied .icon-check {
+    display: block;
+  }
+
+  [data-theme="dark"] .share-btn--twitter {
+    background: #fff;
+    color: #000;
+  }
+
+  [data-theme="dark"] .share-btn--copy {
+    border-color: var(--border, #444);
+  }
+
+  [data-theme="dark"] .share-btn--copy:hover {
+    border-color: #aaa;
+    color: #fff;
+  }
+</style>

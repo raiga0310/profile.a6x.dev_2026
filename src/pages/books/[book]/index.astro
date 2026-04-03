@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AiInvolvement from '../../../components/AiInvolvement.astro';
+import ShareButtons from '../../../components/ShareButtons.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -27,6 +28,7 @@ export async function getStaticPaths() {
 }
 
 const { book, bookSlug, chapters } = Astro.props;
+const pageUrl = Astro.url.href;
 ---
 
 <BaseLayout title={`${book.data.title} | a6x.dev`} description={book.data.description}>
@@ -45,6 +47,9 @@ const { book, bookSlug, chapters } = Astro.props;
         <time class="book-header__date" datetime={book.data.publishedAt}>
           {new Date(book.data.publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
         </time>
+      </div>
+      <div class="book-header__share">
+        <ShareButtons title={book.data.title} url={pageUrl} />
       </div>
     </header>
 
@@ -130,6 +135,10 @@ const { book, bookSlug, chapters } = Astro.props;
   .book-header__date {
     font-size: 0.8rem;
     color: var(--text-muted);
+  }
+
+  .book-header__share {
+    margin-top: 1.25rem;
   }
 
   .book-toc-section__heading {
