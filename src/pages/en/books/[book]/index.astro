@@ -1,11 +1,11 @@
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import AiInvolvement from '../../../components/AiInvolvement.astro';
-import ShareButtons from '../../../components/ShareButtons.astro';
-import { getLocalizedBooks } from '../../../lib/bookContent';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import AiInvolvement from '../../../../components/AiInvolvement.astro';
+import ShareButtons from '../../../../components/ShareButtons.astro';
+import { getLocalizedBooks } from '../../../../lib/bookContent';
 
 export async function getStaticPaths() {
-  const books = await getLocalizedBooks('ja');
+  const books = await getLocalizedBooks('en');
 
   return books.map(({ book, bookSlug, chapters }) => ({
     params: { book: bookSlug },
@@ -17,9 +17,9 @@ const { book, bookSlug, chapters } = Astro.props;
 const pageUrl = Astro.url.href;
 ---
 
-<BaseLayout title={`${book.data.title} | a6x.dev`} description={book.data.description}>
+<BaseLayout title={`${book.data.title} | a6x.dev`} description={book.data.description} lang="en">
   <div class="container book-index-page">
-    <a href="/books" class="back-link">← Books</a>
+    <a href="/en/books" class="back-link">← Books</a>
 
     <header class="book-header">
       <h1 class="book-header__title">{book.data.title}</h1>
@@ -31,7 +31,7 @@ const pageUrl = Astro.url.href;
           </div>
         )}
         <time class="book-header__date" datetime={book.data.publishedAt}>
-          {new Date(book.data.publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date(book.data.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </time>
       </div>
       <div class="book-header__share">
@@ -50,11 +50,11 @@ const pageUrl = Astro.url.href;
 
     {chapters.length > 0 && (
       <section class="book-toc-section">
-        <h2 class="book-toc-section__heading">目次</h2>
+        <h2 class="book-toc-section__heading">Contents</h2>
         <ol class="book-toc-section__list">
           {chapters.map(ch => (
             <li class="book-toc-section__item">
-              <a href={`/books/${bookSlug}/${ch.slug}`} class="book-toc-section__link">
+              <a href={`/en/books/${bookSlug}/${ch.slug}`} class="book-toc-section__link">
                 {ch.order != null && <span class="book-toc-section__num">{ch.order}.</span>}
                 <span class="book-toc-section__title">{ch.title}</span>
                 {ch.description && <span class="book-toc-section__desc">{ch.description}</span>}
@@ -62,7 +62,7 @@ const pageUrl = Astro.url.href;
             </li>
           ))}
         </ol>
-        <a href={`/books/${bookSlug}/${chapters[0].slug}`} class="btn-start">最初のチャプターを読む →</a>
+        <a href={`/en/books/${bookSlug}/${chapters[0].slug}`} class="btn-start">Read the first chapter →</a>
       </section>
     )}
   </div>
@@ -128,13 +128,12 @@ const pageUrl = Astro.url.href;
   }
 
   .book-toc-section__heading {
-    font-size: 1.1rem;
+    font-size: 0.8rem;
     font-weight: 700;
     margin-bottom: 1rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: 0.8rem;
   }
 
   .book-toc-section__list {

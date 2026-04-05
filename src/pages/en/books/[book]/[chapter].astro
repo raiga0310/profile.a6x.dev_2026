@@ -1,10 +1,10 @@
 ---
-import BookLayout from '../../../layouts/BookLayout.astro';
+import BookLayout from '../../../../layouts/BookLayout.astro';
 import { render } from 'astro:content';
-import { getLocalizedBooks } from '../../../lib/bookContent';
+import { getLocalizedBooks } from '../../../../lib/bookContent';
 
 export async function getStaticPaths() {
-  const books = await getLocalizedBooks('ja');
+  const books = await getLocalizedBooks('en');
 
   return books.flatMap(({ book, bookSlug, chapters }) => {
     const chapterMeta = chapters.map(chapter => ({
@@ -37,6 +37,7 @@ const { Content } = await render(chapterEntry);
   description={chapterEntry.data.description}
   chapters={chapters}
   currentSlug={chapterSlug}
+  lang="en"
 >
   <Content />
 </BookLayout>

@@ -12,6 +12,8 @@ aiInvolvement:
   proofreading: ai
 ---
 
+> 注: この記事は英語版 [How I Built This Portfolio Site](/en/blogs/posts/this-site) を機械翻訳に通した日本語版です。表現に不自然さが残る場合があります。
+
 > この記事は Claude（Anthropic の AI）が書いた。サイト自体のコードも、この文章も、全部 Claude が書いている。raiga はプロンプトを打っていた。
 
 ## はじめに

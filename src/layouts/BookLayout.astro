@@ -24,18 +24,21 @@ const sorted = [...chapters].sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
 const currentIndex = sorted.findIndex(c => c.slug === currentSlug);
 const prev = currentIndex > 0 ? sorted[currentIndex - 1] : null;
 const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
+const booksBasePath = lang === 'en' ? '/en/books' : '/books';
+const prevLabel = lang === 'en' ? 'Previous chapter' : '前のチャプター';
+const nextLabel = lang === 'en' ? 'Next chapter' : '次のチャプター';
 ---
 
 <BaseLayout title={`${chapterTitle} — ${bookTitle} | a6x.dev`} description={description} lang={lang}>
   <div class="book-layout">
     <aside class="book-sidebar">
       <div class="book-sidebar__inner">
-        <a href={`/books/${bookSlug}`} class="book-sidebar__title">{bookTitle}</a>
+        <a href={`${booksBasePath}/${bookSlug}`} class="book-sidebar__title">{bookTitle}</a>
         <nav class="book-toc">
           <ol class="book-toc__list">
             {sorted.map(ch => (
               <li class:list={['book-toc__item', { 'book-toc__item--active': ch.slug === currentSlug }]}>
-                <a href={`/books/${bookSlug}/${ch.slug}`} class="book-toc__link">
+                <a href={`${booksBasePath}/${bookSlug}/${ch.slug}`} class="book-toc__link">
                   {ch.order != null && <span class="book-toc__num">{ch.order}.</span>}
                   {ch.title}
                 </a>
@@ -49,7 +52,7 @@ const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
     <div class="book-main">
       <article class="book-chapter">
         <header class="book-chapter__header">
-          <a href={`/books/${bookSlug}`} class="book-chapter__back">← {bookTitle}</a>
+          <a href={`${booksBasePath}/${bookSlug}`} class="book-chapter__back">← {bookTitle}</a>
           <h1 class="book-chapter__title">{chapterTitle}</h1>
         </header>
         <div class="prose book-chapter__body">
@@ -57,14 +60,14 @@ const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
         </div>
         <nav class="book-nav">
           {prev ? (
-            <a href={`/books/${bookSlug}/${prev.slug}`} class="book-nav__link book-nav__link--prev">
-              <span class="book-nav__label">前のチャプター</span>
+            <a href={`${booksBasePath}/${bookSlug}/${prev.slug}`} class="book-nav__link book-nav__link--prev">
+              <span class="book-nav__label">{prevLabel}</span>
               <span class="book-nav__title">← {prev.title}</span>
             </a>
           ) : <span />}
           {next ? (
-            <a href={`/books/${bookSlug}/${next.slug}`} class="book-nav__link book-nav__link--next">
-              <span class="book-nav__label">次のチャプター</span>
+            <a href={`${booksBasePath}/${bookSlug}/${next.slug}`} class="book-nav__link book-nav__link--next">
+              <span class="book-nav__label">{nextLabel}</span>
               <span class="book-nav__title">{next.title} →</span>
             </a>
           ) : <span />}
