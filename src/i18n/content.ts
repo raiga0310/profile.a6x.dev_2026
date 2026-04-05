@@ -26,6 +26,11 @@ export function toSlug(id: string): string {
   return stripLocaleAndExtension(id);
 }
 
+export function toAssetSlug(id: string): string {
+  const slug = toSlug(id);
+  return ENGLISH_SUFFIX.test(id) ? `${slug}-en` : slug;
+}
+
 export function toBookSlug(id: string): string {
   const slug = stripLocaleAndExtension(id);
   return slug.endsWith('/index') ? slug.slice(0, -'/index'.length) : slug;

@@ -2,7 +2,7 @@
 import DarkLayout from '../../../layouts/DarkLayout.astro';
 import SlideViewer from '../../../components/SlideViewer.astro';
 import { getCollection } from 'astro:content';
-import { isLocale, toSlug } from '../../../i18n';
+import { isLocale, toAssetSlug, toSlug } from '../../../i18n';
 
 export async function getStaticPaths() {
   const slides = await getCollection('slides', s => isLocale(s.id, 'en'));
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 const { slide } = Astro.props;
-const slug = toSlug(slide.id);
+const slug = toAssetSlug(slide.id);
 const dateStr = new Date(slide.data.date).toLocaleDateString('en-US', {
   year: 'numeric', month: 'long', day: 'numeric',
 });
