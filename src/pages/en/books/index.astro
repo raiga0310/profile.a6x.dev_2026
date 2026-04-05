@@ -1,41 +1,39 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getLocalizedBooks } from '../../lib/bookContent';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getLocalizedBooks } from '../../../lib/bookContent';
 
-const books = await getLocalizedBooks('ja');
+const books = await getLocalizedBooks('en');
 ---
 
-<BaseLayout title="Books | a6x.dev" description="技術書・解説まとめ">
+<BaseLayout title="Books | a6x.dev" description="Technical guides and long-form writeups" lang="en">
   <div class="container books-page">
     <h1 class="section-title">Books</h1>
-    <p class="books-page__lead">技術的なトピックを章立てでまとめた読み物です。</p>
+    <p class="books-page__lead">Long-form technical writeups organized chapter by chapter.</p>
 
     {books.length === 0 ? (
-      <p style="color: var(--text-muted);">本はまだありません。</p>
+      <p style="color: var(--text-muted);">No books yet.</p>
     ) : (
       <ul class="books-list">
-        {books.map(({ book, bookSlug }) => {
-          return (
-            <li class="book-card">
-              <a href={`/books/${bookSlug}`} class="book-card__link">
-                <div class="book-card__body">
-                  <h2 class="book-card__title">{book.data.title}</h2>
-                  {book.data.description && (
-                    <p class="book-card__desc">{book.data.description}</p>
-                  )}
-                  {book.data.tags.length > 0 && (
-                    <div class="book-card__tags">
-                      {book.data.tags.map(tag => <span class="tag">{tag}</span>)}
-                    </div>
-                  )}
-                </div>
-                <time class="book-card__date" datetime={book.data.publishedAt}>
-                  {new Date(book.data.publishedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
-                </time>
-              </a>
-            </li>
-          );
-        })}
+        {books.map(({ book, bookSlug }) => (
+          <li class="book-card">
+            <a href={`/en/books/${bookSlug}`} class="book-card__link">
+              <div class="book-card__body">
+                <h2 class="book-card__title">{book.data.title}</h2>
+                {book.data.description && (
+                  <p class="book-card__desc">{book.data.description}</p>
+                )}
+                {book.data.tags.length > 0 && (
+                  <div class="book-card__tags">
+                    {book.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                  </div>
+                )}
+              </div>
+              <time class="book-card__date" datetime={book.data.publishedAt}>
+                {new Date(book.data.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+              </time>
+            </a>
+          </li>
+        ))}
       </ul>
     )}
   </div>

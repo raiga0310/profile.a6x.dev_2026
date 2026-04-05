@@ -49,7 +49,7 @@ const posts = defineCollection({
 });
 
 const books = defineCollection({
-  loader: glob({ pattern: '*/index.md', base: './src/content/books' }),
+  loader: glob({ pattern: '*/index*.md', base: './src/content/books' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

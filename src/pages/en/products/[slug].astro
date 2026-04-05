@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { isLocale, toSlug } from '../../../i18n';
+import { isLocale, toAssetSlug, toSlug } from '../../../i18n';
 
 export async function getStaticPaths() {
   const products = await getCollection('products', p => isLocale(p.id, 'en'));
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 
 const { product } = Astro.props;
 const { Content } = await render(product);
-const slug = toSlug(product.id);
+const slug = toAssetSlug(product.id);
 ---
 
 <BaseLayout

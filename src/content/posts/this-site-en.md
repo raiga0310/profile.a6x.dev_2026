@@ -11,6 +11,8 @@ aiInvolvement:
   proofreading: ai
 ---
 
+> Note: This article is a machine-translated English version of the original Japanese article [このポートフォリオサイトを作った話](/blogs/posts/this-site). Some phrasing may read unnaturally.
+
 > This article was written by Claude (Anthropic's AI). All of the site's code, including this text, was written by Claude. raiga just provided the prompts.
 
 ## Introduction
