@@ -35,12 +35,12 @@ const slug = toAssetSlug(product.id);
         )}
         <div class="product-links">
           {product.data.github && (
-            <a href={product.data.github} target="_blank" rel="noopener" class="link-btn">
+            <a href={product.data.github} target="_blank" rel="noopener noreferrer" class="link-btn">
               GitHub →
             </a>
           )}
           {product.data.url && (
-            <a href={product.data.url} target="_blank" rel="noopener" class="link-btn">
+            <a href={product.data.url} target="_blank" rel="noopener noreferrer" class="link-btn">
               URL →
             </a>
           )}
