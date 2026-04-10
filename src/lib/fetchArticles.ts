@@ -1,3 +1,5 @@
+import { ARTICLE_SOURCE_HOSTS, normalizeAllowedHttpsUrl } from './urlSafety';
+
 export interface ExternalArticle {
   title: string;
   url: string;
@@ -6,6 +8,69 @@ export interface ExternalArticle {
   source: 'zenn' | 'qiita' | 'prtimes' | 'sizu';
   tags?: string[];
   thumbnail?: string;
+}
+
+function compactWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function sanitizePlainText(value: unknown, maxLength: number): string {
+  return compactWhitespace(String(value ?? ''))
+    .slice(0, maxLength);
+}
+
+function sanitizeHtmlExcerpt(value: unknown, maxLength: number): string {
+  return compactWhitespace(
+    String(value ?? '')
+      .replace(/<[^>]+>/g, ''),
+  ).slice(0, maxLength);
+}
+
+function toIsoDate(value: unknown): string | null {
+  const date = new Date(String(value ?? ''));
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function sanitizeTags(tags: unknown): string[] | undefined {
+  if (!Array.isArray(tags)) {
+    return undefined;
+  }
+
+  const cleaned = tags
+    .map((tag) => sanitizePlainText(tag, 40))
+    .filter(Boolean)
+    .slice(0, 5);
+
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
+function buildArticle(input: {
+  title: unknown;
+  url: unknown;
+  description: string;
+  publishedAt: unknown;
+  source: ExternalArticle['source'];
+  tags?: unknown;
+  thumbnail?: unknown;
+}): ExternalArticle | null {
+  const title = sanitizePlainText(input.title, 160);
+  const url = normalizeAllowedHttpsUrl(String(input.url ?? ''), ARTICLE_SOURCE_HOSTS[input.source]);
+  const publishedAt = toIsoDate(input.publishedAt);
+  const thumbnail = normalizeAllowedHttpsUrl(String(input.thumbnail ?? ''));
+
+  if (!title || !url || !publishedAt) {
+    return null;
+  }
+
+  return {
+    title,
+    url,
+    description: sanitizePlainText(input.description, 100),
+    publishedAt,
+    source: input.source,
+    tags: sanitizeTags(input.tags),
+    thumbnail: thumbnail ?? undefined,
+  };
 }
 
 export async function fetchZennArticles(username: string): Promise<ExternalArticle[]> {
@@ -19,20 +84,16 @@ export async function fetchZennArticles(username: string): Promise<ExternalArtic
     const feed = parser.parse(xml);
     const items: any[] = feed?.rss?.channel?.item ?? [];
 
-    return items.map((item): ExternalArticle => {
-      const desc = (item.description ?? '')
-        .replace(/<[^>]+>/g, '')
-        .trim()
-        .slice(0, 100);
-
-      return {
-        title: item.title ?? '',
-        url: item.link ?? '',
-        description: desc,
-        publishedAt: new Date(item.pubDate).toISOString(),
+    return items.flatMap((item) => {
+      const article = buildArticle({
+        title: item.title,
+        url: item.link,
+        description: sanitizeHtmlExcerpt(item.description, 100),
+        publishedAt: item.pubDate,
         source: 'zenn',
-        thumbnail: item.enclosure?.['@_url'] ?? undefined,
-      };
+        thumbnail: item.enclosure?.['@_url'],
+      });
+      return article ? [article] : [];
     });
   } catch {
     return [];
@@ -46,14 +107,17 @@ export async function fetchQiitaArticles(username: string): Promise<ExternalArti
     );
     if (!res.ok) return [];
     const data: any[] = await res.json();
-    return data.map((a): ExternalArticle => ({
-      title: a.title,
-      url: a.url,
-      description: a.body?.slice(0, 80).replace(/[#\n]/g, ' ') ?? '',
-      publishedAt: a.created_at,
-      source: 'qiita',
-      tags: (a.tags ?? []).map((t: any) => t.name),
-    }));
+    return data.flatMap((a) => {
+      const article = buildArticle({
+        title: a.title,
+        url: a.url,
+        description: String(a.body ?? '').slice(0, 80).replace(/[#\n]/g, ' '),
+        publishedAt: a.created_at,
+        source: 'qiita',
+        tags: (a.tags ?? []).map((t: any) => t.name),
+      });
+      return article ? [article] : [];
+    });
   } catch {
     return [];
   }
@@ -70,25 +134,23 @@ export async function fetchPRTimesArticles(): Promise<ExternalArticle[]> {
     const feed = parser.parse(xml);
     const items: any[] = feed?.rss?.channel?.item ?? [];
 
-    return items.map((item): ExternalArticle => {
-      const desc = (item.description ?? '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/\[…\]|\[&#8230;\]/g, '…')
-        .trim()
-        .slice(0, 100);
+    return items.flatMap((item) => {
+      const categories = Array.isArray(item.category)
+        ? item.category
+        : item.category ? [item.category] : [];
 
-      const categories: string[] = Array.isArray(item.category)
-        ? item.category.map((c: any) => String(c))
-        : item.category ? [String(item.category)] : [];
-
-      return {
-        title: item.title ?? '',
-        url: item.link ?? '',
-        description: desc,
-        publishedAt: new Date(item.pubDate).toISOString(),
+      const article = buildArticle({
+        title: item.title,
+        url: item.link,
+        description: sanitizeHtmlExcerpt(
+          String(item.description ?? '').replace(/\[…\]|\[&#8230;\]/g, '…'),
+          100,
+        ),
+        publishedAt: item.pubDate,
         source: 'prtimes',
         tags: categories,
-      };
+      });
+      return article ? [article] : [];
     });
   } catch {
     return [];
@@ -106,20 +168,16 @@ export async function fetchSizuArticles(): Promise<ExternalArticle[]> {
     const feed = parser.parse(xml);
     const items: any[] = feed?.rss?.channel?.item ?? [];
 
-    return items.map((item): ExternalArticle => {
-      const desc = (item.description ?? '')
-        .replace(/<[^>]+>/g, '')
-        .trim()
-        .slice(0, 100);
-
-      return {
-        title: item.title ?? '',
-        url: item.link ?? '',
-        description: desc,
-        publishedAt: new Date(item.pubDate).toISOString(),
+    return items.flatMap((item) => {
+      const article = buildArticle({
+        title: item.title,
+        url: item.link,
+        description: sanitizeHtmlExcerpt(item.description, 100),
+        publishedAt: item.pubDate,
         source: 'sizu',
-        thumbnail: item.enclosure?.['@_url'] ?? undefined,
-      };
+        thumbnail: item.enclosure?.['@_url'],
+      });
+      return article ? [article] : [];
     });
   } catch {
     return [];

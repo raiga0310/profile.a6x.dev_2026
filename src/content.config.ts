@@ -1,5 +1,31 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import {
+  GITHUB_HOSTS,
+  isAllowedHttpsUrl,
+  isSafeSlidePdfPath,
+  SPEAKERDECK_HOSTS,
+} from './lib/urlSafety';
+
+const httpsUrlSchema = z.string().url().refine(
+  (value) => isAllowedHttpsUrl(value),
+  'Expected an https URL',
+);
+
+const githubUrlSchema = httpsUrlSchema.refine(
+  (value) => isAllowedHttpsUrl(value, GITHUB_HOSTS),
+  'Expected a github.com URL',
+);
+
+const speakerDeckUrlSchema = httpsUrlSchema.refine(
+  (value) => isAllowedHttpsUrl(value, SPEAKERDECK_HOSTS),
+  'Expected a speakerdeck.com URL',
+);
+
+const slidePdfSchema = z.string().refine(
+  isSafeSlidePdfPath,
+  'Expected a local /slides/*.pdf path',
+);
 
 const products = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/products' }),
@@ -8,8 +34,8 @@ const products = defineCollection({
     description: z.string(),
     date: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    url: z.string().optional(),
-    github: z.string().optional(),
+    url: httpsUrlSchema.optional(),
+    github: githubUrlSchema.optional(),
     thumbnail: z.string().optional(),
     featured: z.boolean().default(false),
   }),
@@ -22,9 +48,9 @@ const slides = defineCollection({
     date: z.string(),
     event: z.string().optional(),
     description: z.string().optional(),
-    pdf: z.string(),
+    pdf: slidePdfSchema,
     tags: z.array(z.string()).default([]),
-    speakerdeck: z.string().optional(),
+    speakerdeck: speakerDeckUrlSchema.optional(),
   }),
 });
 
