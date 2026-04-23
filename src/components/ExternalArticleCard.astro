@@ -15,7 +15,7 @@ const sourceColor = article.source === 'zenn' ? '#3EA8FF' : article.source === '
 const sourceIcon = article.source === 'zenn' ? 'zenn' : article.source === 'qiita' ? 'qiita' : article.source === 'prtimes' ? 'prtimes' : 'sizu';
 ---
 
-<a href={article.url} target="_blank" rel="noopener" class="ext-card">
+<a href={article.url} target="_blank" rel="noopener noreferrer" class="ext-card">
   <div class="ext-card__badge" style={`background: ${sourceColor}`}>
     <Icon name={sourceIcon as any} size={12} color="#fff" />
     {sourceLabel}
