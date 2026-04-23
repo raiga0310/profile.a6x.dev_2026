@@ -40,11 +40,11 @@ const dateStr = new Date(slide.data.date).toLocaleDateString('ja-JP', {
       </div>
     </header>
 
-    <SlideViewer pdf={slide.data.pdf} />
+    <SlideViewer pdf={slide.data.pdf} title={slide.data.title} locale="ja" />
 
     {slide.data.speakerdeck && (
       <div class="slide-external">
-        <a href={slide.data.speakerdeck} target="_blank" rel="noopener" class="ext-btn">
+        <a href={slide.data.speakerdeck} target="_blank" rel="noopener noreferrer" class="ext-btn">
           SpeakerDeck で見る →
         </a>
       </div>
