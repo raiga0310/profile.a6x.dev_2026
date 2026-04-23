@@ -351,11 +351,28 @@ BridgeEvent
 
 ## 所有関係の最重要ポイント
 
-```mermaid
-flowchart TD
-  SERVER["Server"] --> PANE["Pane"] --> SERVER_GRID["Arc&lt;tokio::Mutex&lt;Grid&gt;&gt;"]
-  STORE["PaneStore"] --> CLIENT_GRIDS["grids: HashMap&lt;PaneId, Arc&lt;Mutex&lt;Grid&gt;&gt;&gt;"]
-  CLIENT["ClientState"] --> STORE_REF["Arc&lt;Mutex&lt;PaneStore&gt;&gt;"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(row(
+  column(
+    accent-node("Server"),
+    down(),
+    code-node("Pane"),
+    down(),
+    code-node("Arc<tokio::Mutex<Grid>>"),
+  ),
+  column(
+    accent-node("PaneStore"),
+    down(),
+    code-node("grids: HashMap<PaneId,", "Arc<Mutex<Grid>>>"),
+  ),
+  column(
+    accent-node("ClientState"),
+    down(),
+    code-node("Arc<Mutex<PaneStore>>"),
+  ),
+))
 ```
 
 server の `Grid` と client の `Grid` は別インスタンスで、

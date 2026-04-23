@@ -8,11 +8,21 @@ description: "Workspace / Surface / PaneTree と、クライアント側 LayoutN
 
 サーバー側のセッション階層は今も 3 段だ。
 
-```mermaid
-flowchart TD
-  WS["Workspace"] --> SURFACE["Surface"] --> TREE["PaneTree"]
-  TREE --> LEAF["Leaf(PaneId)"]
-  TREE --> SPLIT["Split { direction, ratio, first, second }"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("Workspace"),
+  down(),
+  code-node("Surface"),
+  down(),
+  accent-node("PaneTree"),
+  down(),
+  row(
+    code-node("Leaf(PaneId)"),
+    code-node("Split { direction, ratio,", "first, second }"),
+  ),
+))
 ```
 
 ただし GUI 描画はこの木を直接使わず、
@@ -84,16 +94,26 @@ bridge 側も Win32 側も更新対象を迷いにくい。
 
 ### GUI 起点
 
-```mermaid
-flowchart TD
-  INPUT["Ctrl+Shift+E / Ctrl+Shift+O"]
-  INPUT --> REQ["ClientState::request_split()"]
-  REQ --> TX["split_tx.send((active_pane, direction))"]
-  TX --> CREATE["bridge が ClientMessage::CreatePane を Server へ"]
-  CREATE --> SPAWN["Server が Pane::spawn()"]
-  SPAWN --> CREATED["ServerMessage::PaneCreated"]
-  CREATED --> UPDATE["bridge が TerminalSink / Grid / LayoutNode を追加"]
-  UPDATE --> RESIZE["親ペインに Resize を送り直す"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, down, centered
+
+#centered(column(
+  accent-node("Ctrl+Shift+E / Ctrl+Shift+O"),
+  down(),
+  code-node("ClientState::request_split()"),
+  down(),
+  code-node("split_tx.send((active_pane, direction))"),
+  down(),
+  code-node("bridge が ClientMessage::CreatePane", "を Server へ送る"),
+  down(),
+  code-node("Server が Pane::spawn()"),
+  down(),
+  code-node("ServerMessage::PaneCreated"),
+  down(),
+  code-node("bridge が TerminalSink / Grid /", "LayoutNode を追加"),
+  down(),
+  code-node("親ペインに Resize を送り直す"),
+))
 ```
 
 bridge は `pending: VecDeque<(PaneId, SplitDirection, TermSize)>` を持ち、
@@ -119,10 +139,21 @@ bridge はそれを見てクライアント側 `LayoutNode` を補正する。
 フローティングペインは `LayoutNode` に含めない。
 `PaneStore.floating` と `PaneStore.floating_visible` で別管理する。
 
-```mermaid
-flowchart LR
-  NORMAL["通常レイアウト"] --> NORMAL_IMPL["LayoutNode が担当"]
-  FLOAT["フロート表示"] --> FLOAT_IMPL["PaneStore::floating_rect(content_rect) が担当"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, rarrow, centered
+
+#centered(column(
+  row(
+    accent-node("通常レイアウト"),
+    rarrow(),
+    code-node("LayoutNode が担当"),
+  ),
+  row(
+    accent-node("フロート表示"),
+    rarrow(),
+    code-node("PaneStore::floating_rect(", "content_rect) が担当"),
+  ),
+))
 ```
 
 初回 `Ctrl+F` では通常の `CreatePane` を 1 枚発行し、
@@ -135,11 +166,17 @@ flowchart LR
 
 `CopyState` は現在 `cursor` と `anchor` の 2 つだけを持つ。
 
-```mermaid
-flowchart TD
-  COPY["CopyState"]
-  COPY --> CURSOR["cursor: (col, row)"]
-  COPY --> ANCHOR["anchor: Option&lt;(col, row)&gt;"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("CopyState"),
+  down(),
+  row(
+    code-node("cursor: (col, row)"),
+    code-node("anchor: Option<(col, row)>"),
+  ),
+))
 ```
 
 選択中かどうかは毎回 `is_selected()` で計算する。
@@ -179,11 +216,17 @@ bridge 側の処理:
 
 終了時は `LayoutSnapshot` を `%APPDATA%\yatamux\session.toml` に保存する。
 
-```mermaid
-flowchart TD
-  SNAP["LayoutSnapshot"]
-  SNAP --> ROOT["root: LayoutNodeDef"]
-  SNAP --> ACTIVE["active: PaneId"]
+```typst
+#import "./_diagram.typ": accent-node, code-node, column, row, down, centered
+
+#centered(column(
+  accent-node("LayoutSnapshot"),
+  down(),
+  row(
+    code-node("root: LayoutNodeDef"),
+    code-node("active: PaneId"),
+  ),
+))
 ```
 
 `LayoutNodeDef` は `LayoutNode` のシリアライズ専用ミラー型で、
