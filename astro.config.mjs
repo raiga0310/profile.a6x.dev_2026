@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import rehypeMermaid from './scripts/rehype-mermaid.mjs';
+import rehypeTypstDiagrams from './scripts/rehype-typst-diagrams.mjs';
 
 import cloudflare from '@astrojs/cloudflare';
 
@@ -13,7 +13,7 @@ export default defineConfig({
   }),
   markdown: {
     rehypePlugins: [
-      rehypeMermaid,
+      rehypeTypstDiagrams,
       rehypeSlug,
       [rehypeAutolinkHeadings, {
         behavior: 'append',
