@@ -20,7 +20,7 @@
     "fast-xml-parser": "^5.5.11",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
-    "simple-icons": "^16.16.0"
+    "simple-icons": "^16.18.1"
   },
   "devDependencies": {
     "@argos-ci/playwright": "^6.6.1",
