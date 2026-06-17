@@ -44,3 +44,8 @@ test-results/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# AI agent files
+.claude/
+.codex-worktrees/
+AGENTS.md
