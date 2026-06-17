@@ -17,7 +17,7 @@
     "@astrojs/cloudflare": "^13.1.4",
     "@astrojs/rss": "^4.0.18",
     "astro": "^6.1.9",
-    "fast-xml-parser": "^5.5.11",
+    "fast-xml-parser": "^5.7.2",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "simple-icons": "^16.16.0"
