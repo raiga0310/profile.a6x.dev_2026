@@ -1,6 +1,17 @@
 ---
 const history = [
   {
+    period: 'Jul 12, 2026',
+    title: 'Spoke at Function Conf 2026 — "Composable Parsers: Functional Design Starting From a Broken Parser"',
+    desc: 'Starting from a naive parser implementation, I separated state management, error handling, and composition, then reconstructed it using abstractions like Monad and Applicative. The story behind this talk was also featured in a TechTrain interview.',
+    type: 'talk',
+    links: [
+      { label: 'Slides', url: 'https://speakerdeck.com/raiga0310/huai-retapasakarashi-meruguan-shu-xing-she-ji-togou-cheng-de-napasa' },
+      { label: 'Proposal', url: 'https://fortee.jp/2026fp-matsuri/proposal/8e81ee8e-df0e-4fa5-9cbc-f4fb797b81cb' },
+      { label: 'Interview article', url: 'https://techtrain.dev/media/articles/vy10jfnnk91u' },
+    ],
+  },
+  {
     period: 'Aug 2025 – Sep 2025',
     title: 'Sansan, Inc. — Summer Internship',
     desc: 'Interned in the Data Intelligence EU MasterData group within the Technology Division.',
@@ -37,6 +48,7 @@ const history = [
   <div class="container">
     <h2 class="section-title">History</h2>
     <div class="timeline__legend">
+      <span class="legend-item legend-item--talk">Talks &amp; Writing</span>
       <span class="legend-item legend-item--intern">Internship</span>
       <span class="legend-item legend-item--academic">Academic</span>
       <span class="legend-item legend-item--life">Life</span>
@@ -49,6 +61,16 @@ const history = [
             <span class="timeline__period">{item.period}</span>
             <h3 class="timeline__title">{item.title}</h3>
             {item.desc && <p class="timeline__desc">{item.desc}</p>}
+            {item.links && item.links.length > 0 && (
+              <p class="timeline__links">
+                {item.links.map((link, i) => (
+                  <>
+                    {i > 0 && <span class="timeline__link-sep" aria-hidden="true">/</span>}
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+                  </>
+                ))}
+              </p>
+            )}
           </div>
         </li>
       ))}
@@ -84,6 +106,7 @@ const history = [
     border-radius: 50%;
   }
 
+  .legend-item--talk::before { background: #3b82f6; }
   .legend-item--intern::before { background: #f59e0b; }
   .legend-item--academic::before { background: var(--accent); }
   .legend-item--life::before { background: #a78bfa; }
@@ -122,6 +145,7 @@ const history = [
     border-radius: 50%;
   }
 
+  .timeline__dot--talk     { background: #3b82f6; }
   .timeline__dot--intern   { background: #f59e0b; }
   .timeline__dot--academic { background: var(--accent); }
   .timeline__dot--life     { background: #a78bfa; }
@@ -141,5 +165,15 @@ const history = [
     font-size: 0.9rem;
     color: var(--text-muted);
     line-height: 1.6;
+  }
+
+  .timeline__links {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+  }
+
+  .timeline__link-sep {
+    margin: 0 0.4rem;
+    color: var(--text-muted);
   }
 </style>
