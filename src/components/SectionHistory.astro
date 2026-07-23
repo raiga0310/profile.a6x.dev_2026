@@ -1,6 +1,17 @@
 ---
 const history = [
   {
+    period: '2026年7月12日',
+    title: '関数型まつり2026 登壇「壊れたパーサからはじめる関数型設計と構成的なパーサ」',
+    desc: 'ナイーブなパーサ実装を出発点に、状態管理・エラー処理・合成という異なる関心を分離し、モナドやApplicativeといった抽象を用いて再構成する過程を発表しました。登壇の経緯はTechTrainのインタビュー記事でも紹介されています。',
+    type: 'talk',
+    links: [
+      { label: 'スライド', url: 'https://speakerdeck.com/raiga0310/huai-retapasakarashi-meruguan-shu-xing-she-ji-togou-cheng-de-napasa' },
+      { label: 'プロポーザル', url: 'https://fortee.jp/2026fp-matsuri/proposal/8e81ee8e-df0e-4fa5-9cbc-f4fb797b81cb' },
+      { label: 'インタビュー記事', url: 'https://techtrain.dev/media/articles/vy10jfnnk91u' },
+    ],
+  },
+  {
     period: '2025年8月〜2025年9月',
     title: 'Sansan株式会社 サマーインターン',
     desc: '技術本部 Data Intelligence EU MasterData グループにてインターン',
@@ -37,6 +48,7 @@ const history = [
   <div class="container">
     <h2 class="section-title">History</h2>
     <div class="timeline__legend">
+      <span class="legend-item legend-item--talk">登壇・執筆</span>
       <span class="legend-item legend-item--intern">インターン</span>
       <span class="legend-item legend-item--academic">学業</span>
       <span class="legend-item legend-item--life">生活</span>
@@ -49,6 +61,16 @@ const history = [
             <span class="timeline__period">{item.period}</span>
             <h3 class="timeline__title">{item.title}</h3>
             {item.desc && <p class="timeline__desc">{item.desc}</p>}
+            {item.links && item.links.length > 0 && (
+              <p class="timeline__links">
+                {item.links.map((link, i) => (
+                  <>
+                    {i > 0 && <span class="timeline__link-sep" aria-hidden="true">/</span>}
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+                  </>
+                ))}
+              </p>
+            )}
           </div>
         </li>
       ))}
@@ -84,6 +106,7 @@ const history = [
     border-radius: 50%;
   }
 
+  .legend-item--talk::before { background: #3b82f6; }
   .legend-item--intern::before { background: #f59e0b; }
   .legend-item--academic::before { background: var(--accent); }
   .legend-item--life::before { background: #a78bfa; }
@@ -122,6 +145,7 @@ const history = [
     border-radius: 50%;
   }
 
+  .timeline__dot--talk     { background: #3b82f6; }
   .timeline__dot--intern   { background: #f59e0b; }
   .timeline__dot--academic { background: var(--accent); }
   .timeline__dot--life     { background: #a78bfa; }
@@ -141,5 +165,15 @@ const history = [
     font-size: 0.9rem;
     color: var(--text-muted);
     line-height: 1.6;
+  }
+
+  .timeline__links {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+  }
+
+  .timeline__link-sep {
+    margin: 0 0.4rem;
+    color: var(--text-muted);
   }
 </style>
