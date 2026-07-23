@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # 1. Typst ビルド
       # cetz 0.3.x (fletcher が依存) が Typst 0.14+ の path 関数変更で壊れるため 0.13 系に固定
