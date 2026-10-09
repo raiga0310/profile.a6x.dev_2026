@@ -14,21 +14,22 @@
     "test:vrt": "playwright test tests/vrt/"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.7.0",
-    "@astrojs/rss": "^4.0.18",
-    "astro": "^6.4.8",
-    "fast-xml-parser": "^5.7.2",
+    "@astrojs/cloudflare": "^14.3.3",
+    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/rss": "^4.0.19",
+    "astro": "^7.3.5",
+    "fast-xml-parser": "^5.11.2",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
-    "simple-icons": "^16.27.0"
+    "simple-icons": "^16.34.0"
   },
   "devDependencies": {
-    "@argos-ci/playwright": "^7.3.6",
-    "@playwright/test": "^1.61.1",
-    "wrangler": "^4.112.0"
+    "@argos-ci/playwright": "^7.7.1",
+    "@playwright/test": "^1.63.0",
+    "wrangler": "^4.147.0"
   },
   "overrides": {
     "undici": "^7.22.0",
-    "wrangler": "^4.112.0"
+    "wrangler": "^4.147.0"
   }
 }
