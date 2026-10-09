@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeTypstDiagrams from './scripts/rehype-typst-diagrams.mjs';
@@ -11,20 +12,25 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'passthrough',
   }),
+  // このサイトは Astro Sessions API を使用しないため、adapter 14 系のデフォルト
+  // 自動プロビジョニング（KV namespace "SESSION" の自動作成）を無効化する。
+  session: false,
   markdown: {
-    rehypePlugins: [
-      rehypeTypstDiagrams,
-      rehypeSlug,
-      [rehypeAutolinkHeadings, {
-        behavior: 'append',
-        properties: {
-          className: ['heading-anchor'],
-          ariaHidden: 'true',
-          tabIndex: -1,
-        },
-        content: { type: 'text', value: '#' },
-      }],
-    ],
+    processor: unified({
+      rehypePlugins: [
+        rehypeTypstDiagrams,
+        rehypeSlug,
+        [rehypeAutolinkHeadings, {
+          behavior: 'append',
+          properties: {
+            className: ['heading-anchor'],
+            ariaHidden: 'true',
+            tabIndex: -1,
+          },
+          content: { type: 'text', value: '#' },
+        }],
+      ],
+    }),
   },
   i18n: {
     defaultLocale: 'ja',
