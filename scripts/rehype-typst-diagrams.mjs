@@ -51,7 +51,7 @@ function getSourceFilePath(file) {
 }
 
 function getHash(source, sourceFilePath) {
-  const relativeSourceDir = path.relative(PROJECT_ROOT, path.dirname(sourceFilePath));
+  const relativeSourceDir = path.relative(PROJECT_ROOT, path.dirname(sourceFilePath)).split(path.sep).join('/');
   return createHash('sha256')
     .update(HASH_VERSION)
     .update('\0')
