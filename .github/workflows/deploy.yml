@@ -28,7 +28,7 @@ jobs:
       # 2. Node.js セットアップ
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       # 3. Astro ビルド（Zenn/Qiita API取得もこの中で実行）
